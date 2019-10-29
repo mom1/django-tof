@@ -2,14 +2,13 @@
 # @Author: MaxST
 # @Date:   2019-10-23 17:24:33
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-10-29 17:40:56
+# @Last Modified time: 2019-10-29 17:48:46
 from django.conf import settings
 from django.contrib.contenttypes.fields import (
     GenericForeignKey, GenericRelation,
 )
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
-from django.db.models import F, Func, Value
 from django.utils.functional import cached_property
 from django.utils.translation import get_language, gettext_lazy as _
 
@@ -72,7 +71,6 @@ class TranslationsFieldsMixin(models.Model):
 
     @cached_property
     def _all_translations(self, **kwargs):
-        # attr = Func(F('field__name'), Value('__'), F('lang__iso_639_1'), function='CONCAT')
         for name, lang, val in self.translations_fields.all().values_list('field__name', 'lang__iso_639_1', 'value'):
             kwargs.update(create_dict_from_line(f'{name}__{lang}', val, **kwargs))
         return kwargs
