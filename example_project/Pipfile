@@ -4,10 +4,12 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [dev-packages]
+ipdb = "*"
+django-debug-toolbar = "*"
 
 [packages]
 django = "==3.0b1"
-"django-tof" = {path = "..", editable = true}
+django-tof = {path = "..",editable = true}
 
 [requires]
 python_version = "3.7"

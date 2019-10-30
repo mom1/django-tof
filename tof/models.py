@@ -2,7 +2,7 @@
 # @Author: MaxST
 # @Date:   2019-10-23 17:24:33
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-10-29 17:48:46
+# @Last Modified time: 2019-10-30 17:09:30
 from django.conf import settings
 from django.contrib.contenttypes.fields import (
     GenericForeignKey, GenericRelation,
@@ -12,14 +12,7 @@ from django.db import models
 from django.utils.functional import cached_property
 from django.utils.translation import get_language, gettext_lazy as _
 
-
-def create_dict_from_line(name, value, **kwargs):
-    dic = kwargs
-    name, splitter, last_key = name.replace('\\', '').rpartition('__')
-    for key in name.split('__'):
-        dic = dic.setdefault(key, {})
-    dic.setdefault(last_key, value)
-    return kwargs
+from .utils import create_dict_from_line
 
 
 class TranslationsManager(models.Manager):
@@ -55,13 +48,15 @@ class Translations(models.Model):
 
 
 class TranslationsFieldsMixin(models.Model):
-    translations_fields = GenericRelation(Translations, verbose_name=_('Translations'))
+    __translations = GenericRelation(Translations, verbose_name=_('Translations'))
 
     class Meta:
         abstract = True
 
     def __getattribute__(self, attr):
-        if not attr.startswith('_') and attr not in ('id', 'pk', 'translations_fields') and attr in self._all_translations:
+        # self._meta.pk.name
+        if not attr.startswith('_') and attr not in ('id', 'pk', '__translations') and attr in self._all_translations:
+            print(self._meta.pk.name)
             return self._all_translations[attr].get(
                 get_language().split('-')[0],
                 self._all_translations[attr].get(getattr(settings, 'DEFAULT_TRANSLATE', 'en')),
@@ -71,7 +66,7 @@ class TranslationsFieldsMixin(models.Model):
 
     @cached_property
     def _all_translations(self, **kwargs):
-        for name, lang, val in self.translations_fields.all().values_list('field__name', 'lang__iso_639_1', 'value'):
+        for name, lang, val in self.__translations.all().values_list('field__name', 'lang__iso_639_1', 'value'):
             kwargs.update(create_dict_from_line(f'{name}__{lang}', val, **kwargs))
         return kwargs
 
@@ -80,8 +75,8 @@ class TranslatableFields(models.Model):
     class Meta:
         verbose_name = _('Translatable field')
         verbose_name_plural = _('Translatable fields')
-        ordering = ('name', )
-        unique_together = ('title', 'name')
+        ordering = ('content_type', 'name')
+        unique_together = ('content_type', 'name')
 
     name = models.CharField(_('Field name'), max_length=250, help_text=_('Name field'))
     title = models.CharField(_('User field name'), max_length=250, help_text=_("Name user's field"))

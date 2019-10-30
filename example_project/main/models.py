@@ -2,13 +2,12 @@
 # @Author: MaxST
 # @Date:   2019-10-28 20:30:42
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-10-29 17:33:10
+# @Last Modified time: 2019-10-30 13:38:57
 from django.db import models
 from django.utils.translation import gettext_lazy as _
-from tof.models import TranslationsFieldsMixin
 
 
-class Wine(TranslationsFieldsMixin, models.Model):
+class Wine(models.Model):
     class Meta:
         verbose_name = _('wine')
         verbose_name_plural = _('wine-plural')
