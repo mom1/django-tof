@@ -2,7 +2,7 @@
 # @Author: MaxST
 # @Date:   2019-10-23 17:24:33
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-10-30 18:34:41
+# @Last Modified time: 2019-10-31 19:22:21
 from django.conf import settings
 from django.contrib.contenttypes.fields import (
     GenericForeignKey, GenericRelation,
@@ -49,23 +49,29 @@ class Translations(models.Model):
 
 class TranslationsFieldsMixin(models.Model):
     __translations = GenericRelation(Translations, verbose_name=_('Translations'))
+    __flds_tof = {}
 
     class Meta:
         abstract = True
 
     def __getattribute__(self, attr):
-        if not attr.startswith('_') and attr not in ('id', 'pk', self._meta.pk.name, '__translations') and attr in self._all_translations:
-            return self._all_translations[attr].get(
-                get_language().split('-')[0],
-                self._all_translations[attr].get(getattr(settings, 'DEFAULT_TRANSLATE', 'en')),
-            ) or super().__getattribute__(attr)
+        val = self.__flds_tof.get(attr) if not attr.startswith('_') else None
+        if val:
+            return val.__get__(self)
         return super().__getattribute__(attr)
+    # def __getattribute__(self, attr):
+    #     if not attr.startswith('_') and attr not in ('id', 'pk', self._meta.pk.name, '__translations') and attr in self._all_translations:
+    #         return self._all_translations[attr].get(
+    #             get_language().split('-')[0],
+    #             self._all_translations[attr].get(getattr(settings, 'DEFAULT_TRANSLATE', 'en')),
+    #         ) or super().__getattribute__(attr)
+    #     return super().__getattribute__(attr)
 
-    @cached_property
-    def _all_translations(self, **kwargs):
-        for name, lang, val in self.__translations.all().values_list('field__name', 'lang__iso_639_1', 'value'):
-            kwargs.update(create_dict_from_line(f'{name}__{lang}', val, **kwargs))
-        return kwargs
+    # @cached_property
+    # def _all_translations(self, **kwargs):
+    #     for name, lang, val in self.__translations.all().values_list('field__name', 'lang__iso_639_1', 'value'):
+    #         kwargs.update(create_dict_from_line(f'{name}__{lang}', val, **kwargs))
+    #     return kwargs
 
 
 class TranslatableFields(models.Model):
