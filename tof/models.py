@@ -2,7 +2,7 @@
 # @Author: MaxST
 # @Date:   2019-10-23 17:24:33
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-10-30 18:34:41
+# @Last Modified time: 2019-10-31 20:26:49
 from django.conf import settings
 from django.contrib.contenttypes.fields import (
     GenericForeignKey, GenericRelation,
@@ -54,7 +54,8 @@ class TranslationsFieldsMixin(models.Model):
         abstract = True
 
     def __getattribute__(self, attr):
-        if not attr.startswith('_') and attr not in ('id', 'pk', self._meta.pk.name, '__translations') and attr in self._all_translations:
+        if not attr.startswith('_') and attr not in ('id', 'pk', self._meta.pk.name,
+                                                     '__translations') and attr in self._all_translations:
             return self._all_translations[attr].get(
                 get_language().split('-')[0],
                 self._all_translations[attr].get(getattr(settings, 'DEFAULT_TRANSLATE', 'en')),
