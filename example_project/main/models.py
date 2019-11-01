@@ -2,7 +2,7 @@
 # @Author: MaxST
 # @Date:   2019-10-28 20:30:42
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-10-30 13:38:57
+# @Last Modified time: 2019-11-01 11:57:39
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 

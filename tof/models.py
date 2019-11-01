@@ -2,17 +2,13 @@
 # @Author: MaxST
 # @Date:   2019-10-23 17:24:33
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-10-31 19:22:21
-from django.conf import settings
+# @Last Modified time: 2019-11-01 16:33:57
 from django.contrib.contenttypes.fields import (
     GenericForeignKey, GenericRelation,
 )
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
-from django.utils.functional import cached_property
-from django.utils.translation import get_language, gettext_lazy as _
-
-from .utils import create_dict_from_line
+from django.utils.translation import gettext_lazy as _
 
 
 class TranslationsManager(models.Manager):
@@ -33,7 +29,9 @@ class Translations(models.Model):
 
     field = models.ForeignKey('TranslatableFields', related_name='translations', on_delete=models.CASCADE)
     lang = models.ForeignKey('Language', related_name='translations', on_delete=models.CASCADE)
+
     value = models.TextField(_('Value'), help_text=_('Value field'))
+
     sort = models.IntegerField(_('Sort'), default=0, blank=True, null=True)
 
     def __str__(self):
@@ -48,30 +46,17 @@ class Translations(models.Model):
 
 
 class TranslationsFieldsMixin(models.Model):
-    __translations = GenericRelation(Translations, verbose_name=_('Translations'))
-    __flds_tof = {}
-
     class Meta:
         abstract = True
 
+    _field_tof = {}
+    _translations = GenericRelation(Translations, verbose_name=_('Translations'))
+
     def __getattribute__(self, attr):
-        val = self.__flds_tof.get(attr) if not attr.startswith('_') else None
+        val = self._field_tof.get(attr) if not attr.startswith('_') else None
         if val:
             return val.__get__(self)
         return super().__getattribute__(attr)
-    # def __getattribute__(self, attr):
-    #     if not attr.startswith('_') and attr not in ('id', 'pk', self._meta.pk.name, '__translations') and attr in self._all_translations:
-    #         return self._all_translations[attr].get(
-    #             get_language().split('-')[0],
-    #             self._all_translations[attr].get(getattr(settings, 'DEFAULT_TRANSLATE', 'en')),
-    #         ) or super().__getattribute__(attr)
-    #     return super().__getattribute__(attr)
-
-    # @cached_property
-    # def _all_translations(self, **kwargs):
-    #     for name, lang, val in self.__translations.all().values_list('field__name', 'lang__iso_639_1', 'value'):
-    #         kwargs.update(create_dict_from_line(f'{name}__{lang}', val, **kwargs))
-    #     return kwargs
 
 
 class TranslatableFields(models.Model):

@@ -2,13 +2,12 @@
 # @Author: MaxST
 # @Date:   2019-10-30 14:19:55
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-10-31 16:30:56
+# @Last Modified time: 2019-11-01 16:35:01
 from django.conf import settings
 from django.db.models import Case, IntegerField, Value, When
 from django.db.models.query_utils import DeferredAttribute
 from django.utils.translation import get_language
 
-# from .models import Translations
 from .settings import FALLBACK_LANGUAGES
 
 
@@ -71,5 +70,5 @@ class DeferredTranslatedAttribute(DeferredAttribute):
 
         case = Case(*whens, default=Value(index + 1), output_field=IntegerField())
 
-        for val in instance.__translations.filter(field__name=field_name).annotate(_sort=case).order_by('_sort').values_list('value', flat=True):
+        for val in instance._translations.filter(field__name=field_name).annotate(_sort=case).order_by('_sort').values_list('value', flat=True):
             return val
