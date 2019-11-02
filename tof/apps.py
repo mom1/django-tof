@@ -2,7 +2,7 @@
 # @Author: MaxST
 # @Date:   2019-10-29 10:05:01
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-11-01 16:33:08
+# @Last Modified time: 2019-11-01 16:37:53
 from django.apps import AppConfig
 
 from .query_utils import DeferredTranslatedAttribute

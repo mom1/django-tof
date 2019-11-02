@@ -2,9 +2,11 @@
 # @Author: MaxST
 # @Date:   2019-10-30 14:19:55
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-11-01 16:35:01
+# @Last Modified time: 2019-11-01 17:25:46
+from itertools import chain
+
 from django.conf import settings
-from django.db.models import Case, IntegerField, Value, When
+# from django.db.models import Case, IntegerField, Value, When
 from django.db.models.query_utils import DeferredAttribute
 from django.utils.translation import get_language
 
@@ -25,7 +27,6 @@ class DeferredTranslatedAttribute(DeferredAttribute):
         if instance is None:
             return self
 
-        print('DeferredTranslatedAttribute')
         lang = get_language().split('-')[0]
         data = instance.__dict__
         field_name = self.field.attname
@@ -50,25 +51,27 @@ class DeferredTranslatedAttribute(DeferredAttribute):
         return data[trans_field_name]
 
     def get_translation(self, instance=None, field_name=None, lang=None):
-        fallback_languages = getattr(settings, 'FALLBACK_LANGUAGES', FALLBACK_LANGUAGES)
-        site_id = getattr(settings, 'SITE_ID', None)
-        fallback_languages = fallback_languages.get(
-            lang,
-            fallback_languages.get(
-                site_id,
-                ('en', ),
-            ),
-        )
-        if not fallback_languages:
-            fallback_languages = ('en', )
-        elif not isinstance(fallback_languages, (list, tuple)):
-            fallback_languages = (fallback_languages, )
+        fallback_languages = self.get_fallback_languages(lang)
 
-        whens = [When(lang__iso_639_1=lang, then=Value(0))]
-        for index, fal_lang in enumerate(fallback_languages, 1):
-            whens.append(When(lang__iso_639_1=fal_lang, then=Value(index)))
+        for val_lang in chain((lang, ), fallback_languages):
+            translations = instance._all_translations.get(f'{field_name}_{val_lang}')
+            if translations:
+                return translations
 
-        case = Case(*whens, default=Value(index + 1), output_field=IntegerField())
-
-        for val in instance._translations.filter(field__name=field_name).annotate(_sort=case).order_by('_sort').values_list('value', flat=True):
-            return val
+    def get_fallback_languages(self, lang):
+        if not hasattr(self, '_fallback_languages'):
+            fallback_languages = getattr(settings, 'FALLBACK_LANGUAGES', FALLBACK_LANGUAGES)
+            site_id = getattr(settings, 'SITE_ID', None)
+            fallback_languages = fallback_languages.get(
+                lang,
+                fallback_languages.get(
+                    site_id,
+                    ('en', ),
+                ),
+            )
+            if not fallback_languages:
+                fallback_languages = ('en', )
+            elif not isinstance(fallback_languages, (list, tuple)):
+                fallback_languages = (fallback_languages, )
+            self._fallback_languages = fallback_languages
+        return self._fallback_languages

@@ -2,12 +2,13 @@
 # @Author: MaxST
 # @Date:   2019-10-23 17:24:33
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-11-01 16:33:57
+# @Last Modified time: 2019-11-01 17:45:08
 from django.contrib.contenttypes.fields import (
     GenericForeignKey, GenericRelation,
 )
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
+from django.utils.functional import cached_property
 from django.utils.translation import gettext_lazy as _
 
 
@@ -53,10 +54,20 @@ class TranslationsFieldsMixin(models.Model):
     _translations = GenericRelation(Translations, verbose_name=_('Translations'))
 
     def __getattribute__(self, attr):
-        val = self._field_tof.get(attr) if not attr.startswith('_') else None
+        val = self._field_tof.get(attr) if not attr.startswith('_') and super().__getattribute__('id') else None
         if val:
             return val.__get__(self)
         return super().__getattribute__(attr)
+
+    @cached_property
+    def _all_translations(self, **kwargs):
+        translations = self._translations.all()
+        # .select_related('field__name', 'lang__iso_639_1')
+        for name, lang, val in translations.values_list('field__name', 'lang__iso_639_1', 'value'):
+            field_name = f'{name}_{lang}'
+            kwargs[field_name] = val
+            setattr(self, field_name, val)
+        return kwargs
 
 
 class TranslatableFields(models.Model):
