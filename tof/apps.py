@@ -2,7 +2,7 @@
 # @Author: MaxST
 # @Date:   2019-10-29 10:05:01
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-11-01 16:37:53
+# @Last Modified time: 2019-11-05 10:42:33
 from django.apps import AppConfig
 
 from .query_utils import DeferredTranslatedAttribute
@@ -30,7 +30,3 @@ class TofConfig(AppConfig):
                     cls.__bases__ = (TranslationsFieldsMixin, ) + cls.__bases__
             fields = cls._field_tof
             fields[attr] = DeferredTranslatedAttribute(getattr(getattr(cls, attr), 'field', None))
-
-    def attach_attrs(self, sender, *args, **kwargs):
-        instance = kwargs['instance']
-        setattr(instance, sender.field.attname, sender)
