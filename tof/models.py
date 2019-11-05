@@ -2,7 +2,7 @@
 # @Author: MaxST
 # @Date:   2019-10-23 17:24:33
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-11-05 11:26:58
+# @Last Modified time: 2019-11-05 13:40:16
 from django.contrib.contenttypes.fields import (
     GenericForeignKey, GenericRelation,
 )
@@ -62,7 +62,6 @@ class TranslationsFieldsMixin(models.Model):
     @cached_property
     def _all_translations(self, **kwargs):
         translations = self._translations.all()
-        # .select_related('field__name', 'lang__iso_639_1')
         for name, lang, val in translations.values_list('field__name', 'lang__iso_639_1', 'value'):
             field_name = f'{name}_{lang}'
             kwargs[field_name] = val
