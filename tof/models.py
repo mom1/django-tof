@@ -2,7 +2,7 @@
 # @Author: MaxST
 # @Date:   2019-10-23 17:24:33
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-11-07 14:30:42
+# @Last Modified time: 2019-11-07 17:47:00
 from django.contrib.contenttypes.fields import (
     GenericForeignKey, GenericRelation,
 )
@@ -21,7 +21,6 @@ class Translations(models.Model):
     class Meta:
         verbose_name = _('Translation')
         verbose_name_plural = _('Translations')
-        ordering = ('sort', )
         unique_together = ('content_type', 'object_id', 'field', 'lang')
 
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
@@ -33,8 +32,6 @@ class Translations(models.Model):
 
     value = models.TextField(_('Value'), help_text=_('Value field'))
 
-    sort = models.IntegerField(_('Sort'), default=0, blank=True, null=True)
-
     def __str__(self):
         """Пока нужно для отладки.
 
@@ -43,7 +40,7 @@ class Translations(models.Model):
         Returns:
             str
         """
-        return f'Translations(content_object={self.content_object}, name={self.field.name}, value={self.value})'
+        return f'Translations(content_object={self.content_object}, name={self.field.name}, value={self.value}, lang={self.lang})'
 
 
 class TranslationsFieldsMixin(models.Model):
@@ -81,8 +78,20 @@ class TranslationsFieldsMixin(models.Model):
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
-        for val in self._field_tof.values():
-            val.save(self)
+        for def_trans_attrs in self._field_tof.values():
+            def_trans_attrs.save(self)
+
+    @classmethod
+    def _add_deferred_translated_field(cls, name):
+        from .query_utils import DeferredTranslatedAttribute
+        cls._field_tof[name] = DeferredTranslatedAttribute(getattr(getattr(cls, name), 'field', None))
+
+    @classmethod
+    def _del_deferred_translated_field(cls, name):
+        try:
+            del cls._field_tof[name]
+        except Exception:
+            pass
 
 
 class TranslatableFields(models.Model):
@@ -98,6 +107,20 @@ class TranslatableFields(models.Model):
 
     def __str__(self):
         return f'{self.content_type.model}|{self.title}'
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+
+        cls = self.content_type.model_class()
+        if not issubclass(cls, TranslationsFieldsMixin):
+            cls.__bases__ = (TranslationsFieldsMixin, ) + cls.__bases__
+        cls._add_deferred_translated_field(self.name)
+
+    def delete(self, *args, **kwargs):
+        cls = self.content_type.model_class()
+        name = self.name
+        super().delete(*args, **kwargs)
+        cls._del_deferred_translated_field(name)
 
 
 class Language(models.Model):

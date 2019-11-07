@@ -2,9 +2,10 @@
 # @Author: MaxST
 # @Date:   2019-10-29 10:05:01
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-11-07 13:35:18
+# @Last Modified time: 2019-11-07 17:28:26
 from django.apps import AppConfig
 from django.db import connection
+from django.db.models import F
 
 
 class TofConfig(AppConfig):
@@ -20,22 +21,20 @@ class TofConfig(AppConfig):
     def ready(self):
         from django.contrib.contenttypes.models import ContentType
         from .models import TranslationsFieldsMixin
-        from .query_utils import DeferredTranslatedAttribute
 
-        prev = None
         # Exception if did not make migration
         try:
             if not connection.introspection.table_names():
                 return
-            translatable_fields = self.get_model('TranslatableFields')
         except Exception:
             return
 
-        for ct, attr in translatable_fields.objects.values_list('content_type', 'name'):
+        prev = None
+        for ct in ContentType.objects.filter(translatablefields__isnull=False).annotate(attr=F('translatablefields__name')):
             if prev != ct:
                 prev = ct
-                cls = ContentType.objects.get_for_id(ct).model_class()
-                if not issubclass(cls, TranslationsFieldsMixin):
-                    cls.__bases__ = (TranslationsFieldsMixin, ) + cls.__bases__
-            fields = cls._field_tof
-            fields[attr] = DeferredTranslatedAttribute(getattr(getattr(cls, attr), 'field', None))
+                cls = ct.model_class()
+                if issubclass(cls, TranslationsFieldsMixin):
+                    continue
+                cls.__bases__ = (TranslationsFieldsMixin, ) + cls.__bases__
+            cls._add_deferred_translated_field(ct.attr)

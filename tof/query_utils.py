@@ -2,8 +2,8 @@
 # @Author: MaxST
 # @Date:   2019-10-30 14:19:55
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-11-07 14:36:10
-from itertools import chain
+# @Last Modified time: 2019-11-07 17:27:46
+from functools import lru_cache
 
 from django.contrib.contenttypes.models import ContentType
 from django.utils.translation import get_language
@@ -31,13 +31,11 @@ class DeferredTranslatedAttribute:
         field_name = self.get_field_name()
         trans_field_name = self.get_trans_field_name()
         data = instance.__dict__
-        val = data.get(trans_field_name)
-        if not val:
-            val = data[trans_field_name] = self.get_translation(instance=instance, field_name=field_name)
-        return val or data.get(field_name)
+        data[trans_field_name] = data.get(trans_field_name) or self.get_translation(instance=instance, field_name=field_name)
+        return data.get(trans_field_name) or data.get(field_name)
 
     def get_lang(self, is_obj=False):
-        lang = get_language().split('-')[0]
+        lang, *_ = get_language().partition('-')
         return lang if not is_obj else Language.objects.filter(iso_639_1=lang).first()
 
     def get_field_name(self, ct=None):
@@ -52,26 +50,25 @@ class DeferredTranslatedAttribute:
         fld_name = field_name or self.get_field_name()
         fallback_languages = self.get_fallback_languages(lang)
 
-        for val_lang in chain((lang, ), fallback_languages):
+        for val_lang in fallback_languages:
             translation = instance._all_translations.get(f'{fld_name}_{val_lang}')
             if translation:
                 return translation
 
+    @lru_cache(maxsize=32)
     def get_fallback_languages(self, lang):
-        if not hasattr(self, '_fallback_languages'):
-            def_val = (DEFAULT_LANGUAGE, )
-            fallback_languages = FALLBACK_LANGUAGES.get(
-                lang,
-                FALLBACK_LANGUAGES.get(
-                    SITE_ID,
-                    def_val,
-                ),
-            ) or def_val
+        def_val = (DEFAULT_LANGUAGE, )
+        fallback_languages = FALLBACK_LANGUAGES.get(
+            lang,
+            FALLBACK_LANGUAGES.get(
+                SITE_ID,
+                def_val,
+            ),
+        ) or def_val
 
-            if not isinstance(fallback_languages, (list, tuple)):
-                fallback_languages = (fallback_languages, )
-            self._fallback_languages = fallback_languages
-        return self._fallback_languages
+        if not isinstance(fallback_languages, (list, tuple)):
+            fallback_languages = (fallback_languages, )
+        return (lang, ) + tuple(fallback_languages)
 
     def set_val(self, instance, value):
         instance.__dict__[self.get_trans_field_name()] = value
