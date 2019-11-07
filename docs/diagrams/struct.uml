@@ -1,0 +1,79 @@
+@startuml
+package models.py <<Database>> {
+  class Translations {
+    + content_type
+    + object_id
+    + {field} content_object : GenericForeignKey()
+    + field
+    + lang
+    + value
+  }
+
+  abstract class TranslationsFieldsMixin {
+    # _field_tof : Dict
+    + {field} _translations : GenericRelation('Translations')
+    + __init__()
+    + __getattribute__(attr)
+    + __setattr__(name, value)
+    # {method} _all_translations : cached_property Dict
+    + save()
+    + _add_deferred_translated_field(name) : classmethod
+    + _del_deferred_translated_field(name) : classmethod
+  }
+
+  class TranslatableFields {
+    + name
+    + title
+    + content_type
+    + save()
+    + delete()
+  }
+
+  class Language {
+    + iso_639_1
+    + iso_639_2T
+    + iso_639_2B
+    + iso_639_3
+    + family
+  }
+  Translations -up-> Language : "lang"
+  Translations -down-> TranslatableFields
+  TranslationsFieldsMixin -> Translations
+}
+package apps.py <<Rectangle>>{
+  class TofConfig(AppConfig) {
+    + name = 'tof'
+    + ready()
+  }
+}
+
+package query_utils.py <<Rectangle>>{
+  class DeferredTranslatedAttribute {
+    field
+    __init__(field)
+    get(instance)
+    get_translation(instance=None, field_name=None, language=None)
+    get_fallback_languages(lang) : lru_cache(maxsize=32)
+    get_lang(is_obj=False)
+    get_field_name(ct=None)
+    get_trans_field_name()
+    set_val(instance, value)
+    save(instance)
+
+  }
+}
+
+package other_django_apps <<Rectangle>>{
+  class SomeModel{
+    + title
+    + description
+  }
+}
+
+note right of SomeModel : Динамически наследуется в\napps.py TofConfig.ready()
+
+TranslationsFieldsMixin <|-- SomeModel
+TranslationsFieldsMixin "1" *-right- "1..*" DeferredTranslatedAttribute : "_field_tof"
+Translations --> SomeModel : "content_type"
+TranslatableFields --> SomeModel : "content_type"
+@enduml
