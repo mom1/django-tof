@@ -2,7 +2,7 @@
 # @Author: MaxST
 # @Date:   2019-10-23 17:24:33
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-11-05 13:40:16
+# @Last Modified time: 2019-11-07 09:43:41
 from django.contrib.contenttypes.fields import (
     GenericForeignKey, GenericRelation,
 )
@@ -56,7 +56,7 @@ class TranslationsFieldsMixin(models.Model):
     def __getattribute__(self, attr):
         val = self._field_tof.get(attr) if not attr.startswith('_') and super().__getattribute__('id') else None
         if val:
-            return val.__get__(self) or super().__getattribute__(attr)
+            return val.get(self) or super().__getattribute__(attr)
         return super().__getattribute__(attr)
 
     @cached_property

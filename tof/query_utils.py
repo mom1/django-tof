@@ -2,7 +2,7 @@
 # @Author: MaxST
 # @Date:   2019-10-30 14:19:55
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-11-05 13:19:47
+# @Last Modified time: 2019-11-07 09:55:39
 from itertools import chain
 
 from django.utils.translation import get_language
@@ -14,19 +14,17 @@ class DeferredTranslatedAttribute:
     def __init__(self, field):
         self.field = field
 
-    def __get__(self, instance, cls=None):
+    def get(self, instance):
         """Retrieve and caches the value from the datastore on the first lookup.
 
         Args:
             instance: current instance
-            cls: base class
 
         Returns:
             the cached value.
         """
         if instance is None:
             return self
-
         lang = get_language().split('-')[0]
         data = instance.__dict__
         field_name = self.field.attname
@@ -34,7 +32,7 @@ class DeferredTranslatedAttribute:
         val = data.get(trans_field_name)
         if not val:
             val = data[trans_field_name] = self.get_translation(instance=instance, field_name=field_name, lang=lang)
-        return val
+        return val or data.get(field_name)
 
     def get_translation(self, instance=None, field_name=None, lang=None):
         fallback_languages = self.get_fallback_languages(lang)

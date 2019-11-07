@@ -2,13 +2,21 @@
 # @Author: MaxST
 # @Date:   2019-10-29 10:05:01
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-11-05 10:42:33
+# @Last Modified time: 2019-11-07 09:51:58
 from django.apps import AppConfig
+from django.db import connection
 
 from .query_utils import DeferredTranslatedAttribute
 
 
 class TofConfig(AppConfig):
+    """Класс настроек приложения.
+
+    Тут будем при старте сервера кэшировать список переводимых полей
+
+    Attributes:
+        name: Имя приложения
+    """
     name = 'tof'
 
     def ready(self):
@@ -18,6 +26,8 @@ class TofConfig(AppConfig):
         prev = None
         # Exception if did not make migration
         try:
+            if not connection.introspection.table_names():
+                return
             translatable_fields = self.get_model('TranslatableFields')
         except Exception:
             return
