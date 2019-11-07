@@ -2,11 +2,9 @@
 # @Author: MaxST
 # @Date:   2019-10-29 10:05:01
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-11-07 09:51:58
+# @Last Modified time: 2019-11-07 13:35:18
 from django.apps import AppConfig
 from django.db import connection
-
-from .query_utils import DeferredTranslatedAttribute
 
 
 class TofConfig(AppConfig):
@@ -22,6 +20,7 @@ class TofConfig(AppConfig):
     def ready(self):
         from django.contrib.contenttypes.models import ContentType
         from .models import TranslationsFieldsMixin
+        from .query_utils import DeferredTranslatedAttribute
 
         prev = None
         # Exception if did not make migration

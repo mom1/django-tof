@@ -2,9 +2,10 @@
 # @Author: MaxST
 # @Date:   2019-10-28 20:17:20
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-10-28 20:34:31
-import tof
+# @Last Modified time: 2019-11-07 14:28:57
 from setuptools import find_packages, setup
+
+import tof
 
 with open('README.md', 'rb') as f:
     long_description = f.read().decode('utf-8')

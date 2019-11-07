@@ -2,7 +2,7 @@
 # @Author: MaxST
 # @Date:   2019-10-23 17:24:33
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-11-07 09:43:41
+# @Last Modified time: 2019-11-07 14:30:42
 from django.contrib.contenttypes.fields import (
     GenericForeignKey, GenericRelation,
 )
@@ -51,13 +51,24 @@ class TranslationsFieldsMixin(models.Model):
         abstract = True
 
     _field_tof = {}
+    _end_init = False
     _translations = GenericRelation(Translations, verbose_name=_('Translations'))
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._end_init = True
+
     def __getattribute__(self, attr):
-        val = self._field_tof.get(attr) if not attr.startswith('_') and super().__getattribute__('id') else None
+        val = self._field_tof.get(attr) if not attr.startswith('_') and self._end_init else None
         if val:
             return val.get(self) or super().__getattribute__(attr)
         return super().__getattribute__(attr)
+
+    def __setattr__(self, name, value):
+        val = self._field_tof.get(name) if self._end_init else None
+        if val:
+            return val.set_val(self, value)
+        super().__setattr__(name, value)
 
     @cached_property
     def _all_translations(self, **kwargs):
@@ -67,6 +78,11 @@ class TranslationsFieldsMixin(models.Model):
             kwargs[field_name] = val
             setattr(self, field_name, val)
         return kwargs
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        for val in self._field_tof.values():
+            val.save(self)
 
 
 class TranslatableFields(models.Model):
