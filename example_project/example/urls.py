@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """example URL Configuration
 
 The `urlpatterns` list routes URLs to views. For more information please see:
@@ -18,7 +19,9 @@ from django.conf.urls.i18n import i18n_patterns  # for local
 from django.contrib import admin
 from django.urls import include, path
 
-urlpatterns = i18n_patterns(path('admin/', admin.site.urls), )
+from main.views import Index
+
+urlpatterns = i18n_patterns(path('admin/', admin.site.urls), path('', Index.as_view()))
 
 if settings.DEBUG:
     if 'debug_toolbar' in settings.INSTALLED_APPS:
