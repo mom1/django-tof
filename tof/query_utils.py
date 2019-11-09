@@ -2,7 +2,7 @@
 # @Author: MaxST
 # @Date:   2019-10-30 14:19:55
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-11-07 17:27:46
+# @Last Modified time: 2019-11-09 19:55:00
 from functools import lru_cache
 
 from django.contrib.contenttypes.models import ContentType
@@ -68,7 +68,7 @@ class DeferredTranslatedAttribute:
 
         if not isinstance(fallback_languages, (list, tuple)):
             fallback_languages = (fallback_languages, )
-        return (lang, ) + tuple(fallback_languages)
+        return (lang, ) + tuple(fl for fl in fallback_languages if fl != lang) + def_val
 
     def set_val(self, instance, value):
         instance.__dict__[self.get_trans_field_name()] = value

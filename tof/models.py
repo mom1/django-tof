@@ -2,7 +2,7 @@
 # @Author: MaxST
 # @Date:   2019-10-23 17:24:33
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-11-07 17:47:00
+# @Last Modified time: 2019-11-08 19:07:09
 from django.contrib.contenttypes.fields import (
     GenericForeignKey, GenericRelation,
 )
@@ -40,7 +40,7 @@ class Translations(models.Model):
         Returns:
             str
         """
-        return f'Translations(content_object={self.content_object}, name={self.field.name}, value={self.value}, lang={self.lang})'
+        return f'{self.content_object}: lang={self.lang}, field={self.field.name}, value={self.value})'
 
 
 class TranslationsFieldsMixin(models.Model):
