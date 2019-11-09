@@ -2,7 +2,7 @@
 # @Author: MaxST
 # @Date:   2019-10-23 17:24:33
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-11-08 19:07:09
+# @Last Modified time: 2019-11-09 20:43:26
 from django.contrib.contenttypes.fields import (
     GenericForeignKey, GenericRelation,
 )
@@ -24,7 +24,7 @@ class Translations(models.Model):
         unique_together = ('content_type', 'object_id', 'field', 'lang')
 
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
-    object_id = models.PositiveIntegerField()
+    object_id = models.PositiveIntegerField(help_text=_('First set the field'))
     content_object = GenericForeignKey()
 
     field = models.ForeignKey('TranslatableFields', related_name='translations', on_delete=models.CASCADE)

@@ -2,15 +2,17 @@
 # @Author: MaxST
 # @Date:   2019-10-28 12:30:45
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-11-09 20:01:33
+# @Last Modified time: 2019-11-09 20:41:46
 from django.contrib import admin
-from django.contrib.contenttypes.models import ContentType
 from django.http import JsonResponse
 
 from .forms import TranslationsForm
 from .models import Language, TranslatableFields, Translations
 
-admin.site.register(Language)
+
+@admin.register(Language)
+class AdminTranslatableFields(admin.ModelAdmin):
+    search_fields = ('iso_639_1', )
 
 
 @admin.register(TranslatableFields)
@@ -32,7 +34,7 @@ class AdminTranslations(admin.ModelAdmin):
             'fields': ('content_type', ),
         },
     ))
-    autocomplete_fields = ('field', )
+    autocomplete_fields = ('field', 'lang')
 
     def _changeform_view(self, request, object_id, form_url, extra_context):
         fld_id = request.GET.get('field_id')
