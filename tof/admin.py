@@ -2,7 +2,7 @@
 # @Author: MaxST
 # @Date:   2019-10-28 12:30:45
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-11-09 20:41:46
+# @Last Modified time: 2019-11-11 12:12:25
 from django.contrib import admin
 from django.http import JsonResponse
 
@@ -11,13 +11,17 @@ from .models import Language, TranslatableFields, Translations
 
 
 @admin.register(Language)
-class AdminTranslatableFields(admin.ModelAdmin):
+class AdminLanguage(admin.ModelAdmin):
     search_fields = ('iso_639_1', )
 
 
 @admin.register(TranslatableFields)
 class AdminTranslatableFields(admin.ModelAdmin):
     search_fields = ('name', 'title')
+
+    def delete_queryset(self, request, queryset):
+        for obj in queryset:
+            obj.delete()
 
 
 @admin.register(Translations)

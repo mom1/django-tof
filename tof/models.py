@@ -2,7 +2,7 @@
 # @Author: MaxST
 # @Date:   2019-10-23 17:24:33
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-11-09 20:43:26
+# @Last Modified time: 2019-11-11 12:16:32
 from django.contrib.contenttypes.fields import (
     GenericForeignKey, GenericRelation,
 )
