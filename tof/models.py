@@ -55,18 +55,6 @@ class TranslationsFieldsMixin(models.Model):
         super().__init__(*args, **kwargs)
         self._end_init = True
 
-    def __getattribute__(self, attr):
-        val = self._field_tof.get(attr) if not attr.startswith('_') and self._end_init else None
-        if val:
-            return val.get(self) or super().__getattribute__(attr)
-        return super().__getattribute__(attr)
-
-    def __setattr__(self, name, value):
-        val = self._field_tof.get(name) if self._end_init else None
-        if val:
-            return val.set_val(self, value)
-        super().__setattr__(name, value)
-
     @cached_property
     def _all_translations(self, **kwargs):
         translations = self._translations.all()
@@ -84,12 +72,14 @@ class TranslationsFieldsMixin(models.Model):
     @classmethod
     def _add_deferred_translated_field(cls, name):
         from .query_utils import DeferredTranslatedAttribute
-        cls._field_tof[name] = DeferredTranslatedAttribute(getattr(getattr(cls, name), 'field', None))
+        translator = cls._field_tof[name] = DeferredTranslatedAttribute(cls._meta.get_field(name))
+        val = property(fget=translator.__get__, fset=translator.__set__, fdel=translator.__delete__, doc=translator.__repr__())
+        setattr(cls, name, val)
 
     @classmethod
     def _del_deferred_translated_field(cls, name):
         try:
-            del cls._field_tof[name]
+            delattr(cls, name)
         except Exception:
             pass
 
