@@ -2,7 +2,7 @@
 # @Author: MaxST
 # @Date:   2019-10-23 17:24:33
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-11-11 12:16:32
+# @Last Modified time: 2019-11-11 13:13:46
 from django.contrib.contenttypes.fields import (
     GenericForeignKey, GenericRelation,
 )
@@ -47,8 +47,8 @@ class TranslationsFieldsMixin(models.Model):
     class Meta:
         abstract = True
 
-    _field_tof = {}
     _end_init = False
+    _field_tof = {}
     _translations = GenericRelation(Translations, verbose_name=_('Translations'))
 
     def __init__(self, *args, **kwargs):
@@ -73,8 +73,14 @@ class TranslationsFieldsMixin(models.Model):
     def _add_deferred_translated_field(cls, name):
         from .query_utils import DeferredTranslatedAttribute
         translator = cls._field_tof[name] = DeferredTranslatedAttribute(cls._meta.get_field(name))
-        val = property(fget=translator.__get__, fset=translator.__set__, fdel=translator.__delete__, doc=translator.__repr__())
-        setattr(cls, name, val)
+        setattr(
+            cls, name,
+            property(
+                fget=translator.__get__,
+                fset=translator.__set__,
+                fdel=translator.__delete__,
+                doc=translator.__repr__(),
+            ))
 
     @classmethod
     def _del_deferred_translated_field(cls, name):
