@@ -2,7 +2,7 @@
 # @Author: MaxST
 # @Date:   2019-10-30 14:19:55
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-11-07 17:27:46
+# @Last Modified time: 2019-11-12 21:54:25
 from functools import lru_cache
 
 from django.contrib.contenttypes.models import ContentType
@@ -13,20 +13,22 @@ from .settings import DEFAULT_LANGUAGE, FALLBACK_LANGUAGES, SITE_ID
 
 
 class DeferredTranslatedAttribute:
+    """Получит значение перевода поля для инстанса.
+
+        Args:
+            field: Поле модели
+    """
+    __slots__ = ('field', )
+
     def __init__(self, field):
         self.field = field
 
-    def get(self, instance):
-        """Получит значение перевода поля для инстанса.
-
-        Args:
-            instance: current instance
-
-        Returns:
-            the cached value.
-        """
+    def __get__(self, instance):
         if instance is None:
             return self
+
+        if not getattr(instance, '_end_init', False):
+            return
 
         field_name = self.get_field_name()
         trans_field_name = self.get_trans_field_name()
@@ -54,6 +56,7 @@ class DeferredTranslatedAttribute:
             translation = instance._all_translations.get(f'{fld_name}_{val_lang}')
             if translation:
                 return translation
+        return vars(instance).get(f'{self.get_field_name()}_origin')
 
     @lru_cache(maxsize=32)
     def get_fallback_languages(self, lang):
@@ -68,9 +71,12 @@ class DeferredTranslatedAttribute:
 
         if not isinstance(fallback_languages, (list, tuple)):
             fallback_languages = (fallback_languages, )
-        return (lang, ) + tuple(fallback_languages)
+        return (lang, ) + tuple(fl for fl in fallback_languages if fl != lang) + def_val
 
-    def set_val(self, instance, value):
+    def __set__(self, instance, value):
+        if not getattr(instance, '_end_init', False):
+            instance.__dict__[f'{self.get_field_name()}_origin'] = value
+            return
         instance.__dict__[self.get_trans_field_name()] = value
 
     def save(self, instance):
@@ -80,3 +86,7 @@ class DeferredTranslatedAttribute:
             translation, _ = instance._translations.get_or_create(field=self.get_field_name(ct), lang=self.get_lang(True))
             translation.value = val
             translation.save()
+
+    def __delete__(self, instance):
+        del instance.__dict__[self.get_field_name()]
+        del instance._field_tof[self.get_field_name()]

@@ -21,7 +21,10 @@ from django.urls import include, path
 
 from main.views import Index
 
-urlpatterns = i18n_patterns(path('admin/', admin.site.urls), path('', Index.as_view()))
+urlpatterns = i18n_patterns(
+    path('admin/', admin.site.urls),
+    path('', Index.as_view()),
+)
 
 if settings.DEBUG:
     if 'debug_toolbar' in settings.INSTALLED_APPS:

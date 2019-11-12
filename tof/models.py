@@ -2,12 +2,13 @@
 # @Author: MaxST
 # @Date:   2019-10-23 17:24:33
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-11-07 17:47:00
+# @Last Modified time: 2019-11-11 16:16:26
 from django.contrib.contenttypes.fields import (
     GenericForeignKey, GenericRelation,
 )
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
+from django.db.models import Q
 from django.utils.functional import cached_property
 from django.utils.translation import gettext_lazy as _
 
@@ -23,8 +24,8 @@ class Translations(models.Model):
         verbose_name_plural = _('Translations')
         unique_together = ('content_type', 'object_id', 'field', 'lang')
 
-    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
-    object_id = models.PositiveIntegerField()
+    content_type = models.ForeignKey(ContentType, limit_choices_to=~Q(app_label='tof'), on_delete=models.CASCADE)
+    object_id = models.PositiveIntegerField(help_text=_('First set the field'))
     content_object = GenericForeignKey()
 
     field = models.ForeignKey('TranslatableFields', related_name='translations', on_delete=models.CASCADE)
@@ -40,32 +41,20 @@ class Translations(models.Model):
         Returns:
             str
         """
-        return f'Translations(content_object={self.content_object}, name={self.field.name}, value={self.value}, lang={self.lang})'
+        return f'{self.content_object}: lang={self.lang}, field={self.field.name}, value={self.value})'
 
 
 class TranslationsFieldsMixin(models.Model):
     class Meta:
         abstract = True
 
-    _field_tof = {}
     _end_init = False
+    _field_tof = {}
     _translations = GenericRelation(Translations, verbose_name=_('Translations'))
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._end_init = True
-
-    def __getattribute__(self, attr):
-        val = self._field_tof.get(attr) if not attr.startswith('_') and self._end_init else None
-        if val:
-            return val.get(self) or super().__getattribute__(attr)
-        return super().__getattribute__(attr)
-
-    def __setattr__(self, name, value):
-        val = self._field_tof.get(name) if self._end_init else None
-        if val:
-            return val.set_val(self, value)
-        super().__setattr__(name, value)
 
     @cached_property
     def _all_translations(self, **kwargs):
@@ -84,12 +73,20 @@ class TranslationsFieldsMixin(models.Model):
     @classmethod
     def _add_deferred_translated_field(cls, name):
         from .query_utils import DeferredTranslatedAttribute
-        cls._field_tof[name] = DeferredTranslatedAttribute(getattr(getattr(cls, name), 'field', None))
+        translator = cls._field_tof[name] = DeferredTranslatedAttribute(cls._meta.get_field(name))
+        setattr(
+            cls, name,
+            property(
+                fget=translator.__get__,
+                fset=translator.__set__,
+                fdel=translator.__delete__,
+                doc=translator.__repr__(),
+            ))
 
     @classmethod
     def _del_deferred_translated_field(cls, name):
         try:
-            del cls._field_tof[name]
+            delattr(cls, name)
         except Exception:
             pass
 
