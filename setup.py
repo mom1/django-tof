@@ -2,7 +2,7 @@
 # @Author: MaxST
 # @Date:   2019-10-28 20:17:20
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-11-07 14:28:57
+# @Last Modified time: 2019-11-12 22:07:50
 from setuptools import find_packages, setup
 
 import tof
@@ -27,12 +27,14 @@ setup(
     #     'Django==3.0b1',
     # ],
     classifiers=[
-        'Development Status :: 1 - Planning',
+        'Development Status :: 2 - Pre-Alpha',
         'Framework :: Django',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: MIT License',
         'Operating System :: OS Independent',
+        'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
         'Topic :: Database',
         'Topic :: Internet :: WWW/HTTP :: Dynamic Content',
         'Topic :: Text Processing :: Linguistic',
