@@ -10,11 +10,8 @@ package models.py <<Database>> {
   }
 
   abstract class TranslationsFieldsMixin {
-    # _field_tof : Dict
     + {field} _translations : GenericRelation('Translations')
     + __init__()
-    + __getattribute__(attr)
-    + __setattr__(name, value)
     # {method} _all_translations : cached_property Dict
     + save()
     + _add_deferred_translated_field(name) : classmethod
@@ -51,15 +48,15 @@ package query_utils.py <<Rectangle>>{
   class DeferredTranslatedAttribute {
     field
     __init__(field)
-    get(instance)
+    __get__(instance)
     get_translation(instance=None, field_name=None, language=None)
     get_fallback_languages(lang) : lru_cache(maxsize=32)
     get_lang(is_obj=False)
     get_field_name(ct=None)
     get_trans_field_name()
-    set_val(instance, value)
+    __set__(instance, value)
     save(instance)
-
+    __delete__(instance)
   }
 }
 
