@@ -2,7 +2,7 @@
 # @Author: MaxST
 # @Date:   2019-10-30 14:19:55
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-11-11 12:05:36
+# @Last Modified time: 2019-11-12 21:54:25
 from functools import lru_cache
 
 from django.contrib.contenttypes.models import ContentType
@@ -56,6 +56,7 @@ class DeferredTranslatedAttribute:
             translation = instance._all_translations.get(f'{fld_name}_{val_lang}')
             if translation:
                 return translation
+        return vars(instance).get(f'{self.get_field_name()}_origin')
 
     @lru_cache(maxsize=32)
     def get_fallback_languages(self, lang):
@@ -74,6 +75,7 @@ class DeferredTranslatedAttribute:
 
     def __set__(self, instance, value):
         if not getattr(instance, '_end_init', False):
+            instance.__dict__[f'{self.get_field_name()}_origin'] = value
             return
         instance.__dict__[self.get_trans_field_name()] = value
 
