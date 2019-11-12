@@ -2,12 +2,13 @@
 # @Author: MaxST
 # @Date:   2019-10-23 17:24:33
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-11-11 13:13:46
+# @Last Modified time: 2019-11-11 16:16:26
 from django.contrib.contenttypes.fields import (
     GenericForeignKey, GenericRelation,
 )
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
+from django.db.models import Q
 from django.utils.functional import cached_property
 from django.utils.translation import gettext_lazy as _
 
@@ -23,7 +24,7 @@ class Translations(models.Model):
         verbose_name_plural = _('Translations')
         unique_together = ('content_type', 'object_id', 'field', 'lang')
 
-    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    content_type = models.ForeignKey(ContentType, limit_choices_to=~Q(app_label='tof'), on_delete=models.CASCADE)
     object_id = models.PositiveIntegerField(help_text=_('First set the field'))
     content_object = GenericForeignKey()
 
