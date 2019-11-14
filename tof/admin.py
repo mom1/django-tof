@@ -2,7 +2,7 @@
 # @Author: MaxST
 # @Date:   2019-10-28 12:30:45
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-11-13 17:54:11
+# @Last Modified time: 2019-11-14 16:06:43
 from django.contrib import admin
 from django.http import Http404, JsonResponse
 from django.urls import reverse
@@ -14,6 +14,12 @@ from .models import Language, TranslatableFields, Translations
 @admin.register(Language)
 class AdminLanguage(admin.ModelAdmin):
     search_fields = ('iso', )
+    list_display = ('iso', 'is_active')
+    list_editable = ('is_active', )
+
+    def get_search_results(self, request, queryset, search_term):
+        queryset, use_distinct = super().get_search_results(request, queryset, search_term)
+        return queryset.filter(is_active=True), use_distinct
 
 
 @admin.register(TranslatableFields)

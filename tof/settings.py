@@ -2,7 +2,7 @@
 # @Author: MaxST
 # @Date:   2019-10-29 17:39:13
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-11-13 17:18:16
+# @Last Modified time: 2019-11-14 13:45:38
 from django.conf import settings
 
 DEFAULT_LANGUAGE = getattr(settings, 'DEFAULT_LANGUAGE', 'en') or 'en'
@@ -15,4 +15,8 @@ FALLBACK_LANGUAGES = {
     SITE_ID: ('en', 'de', 'ru'),
     'fr': ('nl', ),
 }
+
 FALLBACK_LANGUAGES = getattr(settings, 'FALLBACK_LANGUAGES', FALLBACK_LANGUAGES)
+
+# can be '__all__', 'current', ['en', 'de'], {'en', ('en', 'de', 'ru')}
+DEFAULT_FILTER_LANGUAGE = getattr(settings, 'DEFAULT_FILTER_LANGUAGE', 'current')

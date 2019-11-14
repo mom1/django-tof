@@ -2,7 +2,7 @@
 # @Author: MaxST
 # @Date:   2019-10-30 14:19:55
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-11-14 11:33:07
+# @Last Modified time: 2019-11-14 16:23:28
 from functools import lru_cache
 
 from django.utils.translation import get_language
@@ -16,6 +16,8 @@ class TranslatableText(str):
         super().__init__(*args, **kwargs)
 
     def __getattr__(self, name):
+        if name in ('resolve_expression', 'as_sql'):
+            raise AttributeError
         for val_lang in self.get_fallback_languages(name):
             if val_lang in vars(self):
                 return vars(self).get(val_lang)
