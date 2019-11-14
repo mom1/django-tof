@@ -156,14 +156,16 @@ class TranslationsFieldsMixin(models.Model):
     _translations = GenericRelation(Translations, verbose_name=_('Translations'))
 
     def __init__(self, *args, **kwargs):
+        self._origin_tof = {}
         super().__init__(*args, **kwargs)
         self._end_init = True
 
     @cached_property
     def _all_translations(self, **kwargs):
-        for name, lang, val in self._translations.values_list('field__name', 'lang', 'value'):
-            trans_obj = kwargs.setdefault(name, TranslatableText(self))
-            setattr(trans_obj, lang, val)
+        for trans in self._translations.all():
+            name = trans.field.name
+            trans_obj = kwargs.setdefault(name, TranslatableText(self, name))
+            setattr(trans_obj, trans.lang.pk, trans.value)
         return kwargs
 
     def save(self, *args, **kwargs):

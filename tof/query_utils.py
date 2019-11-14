@@ -2,7 +2,7 @@
 # @Author: MaxST
 # @Date:   2019-10-30 14:19:55
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-11-14 16:23:28
+# @Last Modified time: 2019-11-14 20:31:03
 from functools import lru_cache
 
 from django.utils.translation import get_language
@@ -10,9 +10,10 @@ from django.utils.translation import get_language
 from .settings import DEFAULT_LANGUAGE, FALLBACK_LANGUAGES, SITE_ID
 
 
-class TranslatableText(str):
-    def __init__(self, instance, *args, **kwargs):
+class TranslatableText:
+    def __init__(self, instance, attr, *args, **kwargs):
         self.instance = instance
+        self._origin = instance._origin_tof.get(attr, '')
         super().__init__(*args, **kwargs)
 
     def __getattr__(self, name):
@@ -73,9 +74,12 @@ class DeferredTranslatedAttribute:
         return instance._all_translations.get(self.get_field_name())
 
     def __set__(self, instance, value):
-        name = self.get_lang() if getattr(instance, '_end_init', False) else '_origin'
-        trans_text = instance._all_translations.setdefault(self.get_field_name(), TranslatableText(instance))
-        setattr(trans_text, name, str(value))
+        if getattr(instance, '_end_init', False):
+            attr = self.get_field_name()
+            trans_text = instance._all_translations.setdefault(attr, TranslatableText(instance, attr))
+            setattr(trans_text, self.get_lang(), str(value))
+        else:
+            instance._origin_tof[self.get_field_name()] = value
 
     def __delete__(self, instance):
         del instance._all_translations[self.get_field_name()]
