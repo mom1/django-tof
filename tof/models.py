@@ -11,6 +11,7 @@ from django.db import models
 from django.db.models import Q
 from django.utils.functional import cached_property
 from django.utils.translation import gettext_lazy as _
+from .query_utils import DeferredTranslatedAttribute, TranslatableText
 
 
 class TranslationsManager(models.Manager):
@@ -59,10 +60,9 @@ class TranslationsFieldsMixin(models.Model):
     @cached_property
     def _all_translations(self, **kwargs):
         translations = self._translations.all()
-        for name, lang, val in translations.values_list('field__name', 'lang__iso_639_1', 'value'):
-            field_name = f'{name}_{lang}'
-            kwargs[field_name] = val
-            setattr(self, field_name, val)
+        for name, lang, val in translations.values_list('field__name', 'lang', 'value'):
+            trans_obj = kwargs.setdefault(name, TranslatableText(self))
+            setattr(trans_obj, lang, val)
         return kwargs
 
     def save(self, *args, **kwargs):
@@ -72,7 +72,6 @@ class TranslationsFieldsMixin(models.Model):
 
     @classmethod
     def _add_deferred_translated_field(cls, name):
-        from .query_utils import DeferredTranslatedAttribute
         translator = cls._field_tof[name] = DeferredTranslatedAttribute(cls._meta.get_field(name))
         setattr(
             cls, name,
@@ -124,17 +123,9 @@ class Language(models.Model):
     class Meta:
         verbose_name = _('Language')
         verbose_name_plural = _('Languages')
-        ordering = ['iso_639_1']
+        ordering = ['iso']
 
-    iso_639_1 = models.CharField(max_length=2, unique=True)
-    iso_639_2T = models.CharField(max_length=3, unique=True, blank=True)  # noqa
-    iso_639_2B = models.CharField(max_length=3, unique=True, blank=True)  # noqa
-    iso_639_3 = models.CharField(max_length=3, blank=True)
-    family = models.CharField(max_length=50)
+    iso = models.CharField(max_length=2, unique=True, primary_key=True)
 
     def __str__(self):
         return self.iso
-
-    @property
-    def iso(self):
-        return self.iso_639_1

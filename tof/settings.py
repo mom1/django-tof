@@ -2,13 +2,10 @@
 # @Author: MaxST
 # @Date:   2019-10-29 17:39:13
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-11-05 13:08:07
+# @Last Modified time: 2019-11-13 17:18:16
 from django.conf import settings
-from django.core.exceptions import ImproperlyConfigured
 
-DEFAULT_LANGUAGE = getattr(settings, 'DEFAULT_LANGUAGE', 'en')
-if not DEFAULT_LANGUAGE:
-    raise ImproperlyConfigured('DEFAULT_LANGUAGE cannot be empty.')
+DEFAULT_LANGUAGE = getattr(settings, 'DEFAULT_LANGUAGE', 'en') or 'en'
 
 SITE_ID = getattr(settings, 'SITE_ID', None)
 
@@ -18,4 +15,4 @@ FALLBACK_LANGUAGES = {
     SITE_ID: ('en', 'de', 'ru'),
     'fr': ('nl', ),
 }
-FALLBACK_LANGUAGES = getattr(settings, 'DEFAULT_LANGUAGE', FALLBACK_LANGUAGES)
+FALLBACK_LANGUAGES = getattr(settings, 'FALLBACK_LANGUAGES', FALLBACK_LANGUAGES)

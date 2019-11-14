@@ -2,7 +2,7 @@
 # @Author: MaxST
 # @Date:   2019-10-28 12:30:45
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-11-12 21:15:47
+# @Last Modified time: 2019-11-13 17:54:11
 from django.contrib import admin
 from django.http import Http404, JsonResponse
 from django.urls import reverse
@@ -13,7 +13,7 @@ from .models import Language, TranslatableFields, Translations
 
 @admin.register(Language)
 class AdminLanguage(admin.ModelAdmin):
-    search_fields = ('iso_639_1', )
+    search_fields = ('iso', )
 
 
 @admin.register(TranslatableFields)
@@ -48,10 +48,10 @@ class AdminTranslations(admin.ModelAdmin):
 
     def _changeform_view(self, request, object_id, form_url, extra_context):
         fld_id = request.GET.get('field_id')
-        id_obj = request.GET.get('id_obj')
         if fld_id:
             try:
                 ct = TranslatableFields.objects.get(id=fld_id).content_type
+                id_obj = request.GET.get('id_obj')
                 model = ct.model_class()
                 return JsonResponse({
                     'pk': ct.pk,

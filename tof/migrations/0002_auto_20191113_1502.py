@@ -8,7 +8,7 @@ def load_fixture(apps, schema_editor):
 
 
 def del_fixture(apps, schema_editor):
-    language = apps.get_model('core', 'Language')
+    language = apps.get_model('tof', 'Language')
     language.objects.all().delete()
 
 

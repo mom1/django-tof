@@ -2,7 +2,7 @@
 # @Author: MaxST
 # @Date:   2019-10-29 10:05:01
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-11-12 13:54:19
+# @Last Modified time: 2019-11-14 10:25:44
 from django.apps import AppConfig
 from django.db import connection
 from django.db.models import F
