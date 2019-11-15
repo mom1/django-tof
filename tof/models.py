@@ -2,7 +2,7 @@
 # @Author: MaxST
 # @Date:   2019-10-23 17:24:33
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-11-15 13:15:27
+# @Last Modified time: 2019-11-15 13:27:26
 from functools import wraps
 
 from django.contrib.contenttypes.fields import (
@@ -73,9 +73,8 @@ def expand_q_filters(q, root_cls):
 def expand_filter(model_cls, key, value):
     field, sep, lookup = key.partition('__')
     if field in model_cls._field_tof:
-        opts = model_cls._meta
-        query = (Q(field__content_type__app_label=opts.app_label) & Q(field__content_type__model=opts.object_name.lower())
-                 & Q(field__name=field))  # noqa
+        ct = ContentType.objects.get_for_model(model_cls)
+        query = (Q(field__content_type__id=ct.pk) & Q(field__name=field))  # noqa
         if DEFAULT_FILTER_LANGUAGE == '__all__':
             pass
         elif DEFAULT_FILTER_LANGUAGE == 'current':
