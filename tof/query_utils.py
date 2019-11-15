@@ -2,7 +2,7 @@
 # @Author: MaxST
 # @Date:   2019-10-30 14:19:55
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-11-14 20:31:03
+# @Last Modified time: 2019-11-15 16:17:14
 from functools import lru_cache
 
 from django.utils.translation import get_language
@@ -17,12 +17,12 @@ class TranslatableText:
         super().__init__(*args, **kwargs)
 
     def __getattr__(self, name):
-        if name in ('resolve_expression', 'as_sql'):
+        if name in ('resolve_expression', 'as_sql'):  # FIXME hasattr catch AttributeError
             raise AttributeError
         for val_lang in self.get_fallback_languages(name):
             if val_lang in vars(self):
                 return vars(self).get(val_lang)
-        return vars(self).get('_origin', '')
+        return self._origin
 
     def __str__(self):
         return getattr(self, self.get_lang(), '')
@@ -71,7 +71,7 @@ class DeferredTranslatedAttribute:
         if not getattr(instance, '_end_init', False):
             return
 
-        return instance._all_translations.get(self.get_field_name())
+        return instance._all_translations.get(self.get_field_name()) or instance._origin_tof.get(self.get_field_name())
 
     def __set__(self, instance, value):
         if getattr(instance, '_end_init', False):
