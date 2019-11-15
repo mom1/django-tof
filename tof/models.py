@@ -2,7 +2,7 @@
 # @Author: MaxST
 # @Date:   2019-10-23 17:24:33
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-11-15 13:02:35
+# @Last Modified time: 2019-11-15 13:15:27
 from functools import wraps
 
 from django.contrib.contenttypes.fields import (
@@ -255,4 +255,7 @@ def prepare_cls_for_translate(cls, attr, trans_mng=None):
         if CHANGE_DEFAULT_MANAGER and not isinstance(cls._default_manager, TranslationsManager):
             trans_mng.contribute_to_class(cls, trans_mng.default_name)
             cls._meta.default_manager_name = trans_mng.default_name
+            # FIXME
+            del cls.objects
+            trans_mng.contribute_to_class(cls, 'objects')
     cls._add_deferred_translated_field(attr)
