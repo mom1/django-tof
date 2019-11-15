@@ -2,13 +2,19 @@
 # @Author: MaxST
 # @Date:   2019-10-28 12:30:45
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-11-14 16:06:43
+# @Last Modified time: 2019-11-14 22:56:20
 from django.contrib import admin
+from django.contrib.contenttypes.models import ContentType
 from django.http import Http404, JsonResponse
 from django.urls import reverse
 
 from .forms import TranslationsForm
 from .models import Language, TranslatableFields, Translations
+
+
+@admin.register(ContentType)
+class ContentTypeAdmin(admin.ModelAdmin):
+    search_fields = ('app_label', 'model')
 
 
 @admin.register(Language)
@@ -25,6 +31,7 @@ class AdminLanguage(admin.ModelAdmin):
 @admin.register(TranslatableFields)
 class AdminTranslatableFields(admin.ModelAdmin):
     search_fields = ('name', 'title')
+    autocomplete_fields = ('content_type', )
 
     def delete_queryset(self, request, queryset):
         for obj in queryset:

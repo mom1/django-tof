@@ -2,7 +2,7 @@
 # @Author: MaxST
 # @Date:   2019-10-23 17:24:33
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-11-14 17:46:49
+# @Last Modified time: 2019-11-15 13:02:35
 from functools import wraps
 
 from django.contrib.contenttypes.fields import (
@@ -15,7 +15,18 @@ from django.utils.functional import cached_property
 from django.utils.translation import get_language, gettext_lazy as _
 
 from .query_utils import DeferredTranslatedAttribute, TranslatableText
-from .settings import DEFAULT_FILTER_LANGUAGE, DEFAULT_LANGUAGE
+from .settings import (
+    CHANGE_DEFAULT_MANAGER, DEFAULT_FILTER_LANGUAGE, DEFAULT_LANGUAGE,
+)
+
+
+def tof_prefetch(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        query_set = func(*args, **kwargs)
+        return query_set.prefetch_related('_translations__field', '_translations__lang')
+
+    return wrapper
 
 
 def tof_filter(func):
@@ -35,7 +46,6 @@ def tof_filter(func):
                 # modify kwargs (warning: recursion ahead)
                 new_key, new_value, repl = expand_filter(self.model, key, value)
                 new_kwargs.update({new_key: new_value})
-            return func(self, *new_args, **new_kwargs).prefetch_related('_translations')
 
         return func(self, *new_args, **new_kwargs)
 
@@ -87,7 +97,7 @@ def expand_filter(model_cls, key, value):
 class TranslationsQuerySet(models.QuerySet):
     @tof_filter  # noqa
     def filter(self, *args, **kwargs):
-        return super().filter(*args, **kwargs).prefetch_related('_translations')
+        return super().filter(*args, **kwargs)
 
     @tof_filter  # noqa
     def exclude(self, *args, **kwargs):
@@ -99,6 +109,13 @@ class TranslationsQuerySet(models.QuerySet):
 
 
 class TranslationsManager(models.Manager):
+    default_name = 'trans_objects'
+    _queryset_class = TranslationsQuerySet
+
+    def __init__(self, name=None):
+        self.default_name = name or self.default_name
+        super().__init__()
+
     @tof_filter  # noqa
     def filter(self, *args, **kwargs):
         return super().filter(*args, **kwargs)
@@ -111,9 +128,9 @@ class TranslationsManager(models.Manager):
     def get(self, *args, **kwargs):
         return super().get(*args, **kwargs)
 
-    def get_queryset(self):
-        self._queryset_class = TranslationsQuerySet
-        return super().get_queryset().prefetch_related('_translations')
+    @tof_prefetch
+    def get_queryset(self, *args, **kwargs):
+        return super().get_queryset(*args, **kwargs)
 
 
 class Translations(models.Model):
@@ -202,18 +219,14 @@ class TranslatableFields(models.Model):
 
     name = models.CharField(_('Field name'), max_length=250, help_text=_('Name field'))
     title = models.CharField(_('User field name'), max_length=250, help_text=_("Name user's field"))
-    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    content_type = models.ForeignKey(ContentType, limit_choices_to=~Q(app_label='tof'), on_delete=models.CASCADE)
 
     def __str__(self):
         return f'{self.content_type.model}|{self.title}'
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
-
-        cls = self.content_type.model_class()
-        if not issubclass(cls, TranslationsFieldsMixin):
-            cls.__bases__ = (TranslationsFieldsMixin, ) + cls.__bases__
-        cls._add_deferred_translated_field(self.name)
+        prepare_cls_for_translate(self.content_type.model_class(), self.name)
 
     def delete(self, *args, **kwargs):
         cls = self.content_type.model_class()
@@ -233,3 +246,13 @@ class Language(models.Model):
 
     def __str__(self):
         return self.iso
+
+
+def prepare_cls_for_translate(cls, attr, trans_mng=None):
+    if not issubclass(cls, TranslationsFieldsMixin):
+        trans_mng = trans_mng or TranslationsManager()
+        cls.__bases__ = (TranslationsFieldsMixin, ) + cls.__bases__
+        if CHANGE_DEFAULT_MANAGER and not isinstance(cls._default_manager, TranslationsManager):
+            trans_mng.contribute_to_class(cls, trans_mng.default_name)
+            cls._meta.default_manager_name = trans_mng.default_name
+    cls._add_deferred_translated_field(attr)
