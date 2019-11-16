@@ -2,7 +2,7 @@
 # @Author: MaxST
 # @Date:   2019-10-23 17:24:33
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-11-15 13:27:26
+# @Last Modified time: 2019-11-16 19:55:24
 from functools import wraps
 
 from django.contrib.contenttypes.fields import (
@@ -94,8 +94,8 @@ def expand_filter(model_cls, key, value):
 
 
 class TranslationsQuerySet(models.QuerySet):
-    @tof_filter  # noqa
-    def filter(self, *args, **kwargs):
+    @tof_filter
+    def filter(self, *args, **kwargs):  # noqa
         return super().filter(*args, **kwargs)
 
     @tof_filter  # noqa
@@ -116,7 +116,7 @@ class TranslationsManager(models.Manager):
         super().__init__()
 
     @tof_filter  # noqa
-    def filter(self, *args, **kwargs):
+    def filter(self, *args, **kwargs):  # noqa
         return super().filter(*args, **kwargs)
 
     @tof_filter  # noqa

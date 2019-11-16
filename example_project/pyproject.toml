@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "example_project"
+version = "0.1.0"
+description = ""
+authors = ["MaxST <mstolpasov@gmail.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.6"
+django = "==3.0b1"
+django-tof = {path = "..", develop = true}
+
+[tool.poetry.dev-dependencies]
+ipdb = "*"
+django-debug-toolbar = "*"
+
+[tool.poetry.scripts]
+srun = "python manage.py runserver"
+
+[build-system]
+requires = ["poetry>=0.12"]
+build-backend = "poetry.masonry.api"
