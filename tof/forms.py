@@ -9,3 +9,8 @@ from django import forms
 class TranslationsForm(forms.ModelForm):
     class Media:
         js = ('tof/js/translation_form.js', )
+
+
+class TranslatableFieldsForm(forms.ModelForm):
+    class Media:
+        js = ('tof/js/translatable_fields_form.js', )
