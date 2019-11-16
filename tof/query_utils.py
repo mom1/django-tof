@@ -2,7 +2,7 @@
 # @Author: MaxST
 # @Date:   2019-10-30 14:19:55
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-11-14 11:33:07
+# @Last Modified time: 2019-11-15 16:17:14
 from functools import lru_cache
 
 from django.utils.translation import get_language
@@ -10,16 +10,19 @@ from django.utils.translation import get_language
 from .settings import DEFAULT_LANGUAGE, FALLBACK_LANGUAGES, SITE_ID
 
 
-class TranslatableText(str):
-    def __init__(self, instance, *args, **kwargs):
+class TranslatableText:
+    def __init__(self, instance, attr, *args, **kwargs):
         self.instance = instance
+        self._origin = instance._origin_tof.get(attr, '')
         super().__init__(*args, **kwargs)
 
     def __getattr__(self, name):
+        if name in ('resolve_expression', 'as_sql'):  # FIXME hasattr catch AttributeError
+            raise AttributeError
         for val_lang in self.get_fallback_languages(name):
             if val_lang in vars(self):
                 return vars(self).get(val_lang)
-        return vars(self).get('_origin', '')
+        return self._origin
 
     def __str__(self):
         return getattr(self, self.get_lang(), '')
@@ -68,12 +71,15 @@ class DeferredTranslatedAttribute:
         if not getattr(instance, '_end_init', False):
             return
 
-        return instance._all_translations.get(self.get_field_name())
+        return instance._all_translations.get(self.get_field_name()) or instance._origin_tof.get(self.get_field_name())
 
     def __set__(self, instance, value):
-        name = self.get_lang() if getattr(instance, '_end_init', False) else '_origin'
-        trans_text = instance._all_translations.setdefault(self.get_field_name(), TranslatableText(instance))
-        setattr(trans_text, name, str(value))
+        if getattr(instance, '_end_init', False):
+            attr = self.get_field_name()
+            trans_text = instance._all_translations.setdefault(attr, TranslatableText(instance, attr))
+            setattr(trans_text, self.get_lang(), str(value))
+        else:
+            instance._origin_tof[self.get_field_name()] = value
 
     def __delete__(self, instance):
         del instance._all_translations[self.get_field_name()]
