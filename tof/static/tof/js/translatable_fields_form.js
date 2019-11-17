@@ -2,7 +2,7 @@
 * @Author: MaxST
 * @Date:   2019-11-09 13:52:25
 * @Last Modified by:   MaxST
-* @Last Modified time: 2019-11-17 14:37:55
+* @Last Modified time: 2019-11-17 14:46:58
 */
 (function ($) {
   window.generic_view_json = function (fields, text) {
@@ -51,9 +51,7 @@
         $('#id_name').attr('readonly', true);
         return;
       }
-      var params = {
-        'id_ct': $(this).val()
-      };
+
       var esc = encodeURIComponent;
       $.get({
         url: '?id_ct=' + $(this).val(),
