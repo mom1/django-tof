@@ -2,7 +2,7 @@
 # @Author: MaxST
 # @Date:   2019-10-23 17:24:33
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-11-16 19:55:24
+# @Last Modified time: 2019-11-17 13:57:27
 from functools import wraps
 
 from django.contrib.contenttypes.fields import (
@@ -204,7 +204,10 @@ class TranslationsFieldsMixin(models.Model):
     @classmethod
     def _del_deferred_translated_field(cls, name):
         try:
+            fld = cls._field_tof[name].field
+            del cls._field_tof[name]
             delattr(cls, name)
+            fld.contribute_to_class(cls, name)
         except Exception:
             pass
 
@@ -229,9 +232,15 @@ class TranslatableFields(models.Model):
 
     def delete(self, *args, **kwargs):
         cls = self.content_type.model_class()
+        ct_pk = self.content_type.pk
         name = self.name
         super().delete(*args, **kwargs)
-        cls._del_deferred_translated_field(name)
+
+        restore_cls_after_translate(
+            cls,
+            name,
+            ContentType.objects.filter(translatablefields__isnull=False, id=ct_pk).exists(),
+        )
 
 
 class Language(models.Model):
@@ -255,6 +264,22 @@ def prepare_cls_for_translate(cls, attr, trans_mng=None):
             trans_mng.contribute_to_class(cls, trans_mng.default_name)
             cls._meta.default_manager_name = trans_mng.default_name
             # FIXME
+            origin = cls.objects
             del cls.objects
             trans_mng.contribute_to_class(cls, 'objects')
+            origin.contribute_to_class(cls, 'objects_origin')
     cls._add_deferred_translated_field(attr)
+
+
+def restore_cls_after_translate(cls, attr, keep_mixin):
+    cls._del_deferred_translated_field(attr)
+    if issubclass(cls, TranslationsFieldsMixin) and not keep_mixin:
+        cls.__bases__ = cls.__bases__[1:]
+        if CHANGE_DEFAULT_MANAGER and isinstance(cls._default_manager, TranslationsManager):
+            name = cls._default_manager.default_name
+            delattr(cls, name)
+            cls._meta.default_manager_name = None
+            mng = cls.objects_origin
+            del cls.objects
+            del cls.objects_origin
+            mng.contribute_to_class(cls, 'objects')
