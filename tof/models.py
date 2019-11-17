@@ -2,8 +2,7 @@
 # @Author: MaxST
 # @Date:   2019-10-23 17:24:33
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-11-17 13:57:27
-from functools import wraps
+# @Last Modified time: 2019-11-17 15:21:10
 
 from django.contrib.contenttypes.fields import (
     GenericForeignKey, GenericRelation,
@@ -12,124 +11,11 @@ from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.db.models import Q
 from django.utils.functional import cached_property
-from django.utils.translation import get_language, gettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
+from .managers import TranslationsManager
 from .query_utils import DeferredTranslatedAttribute, TranslatableText
-from .settings import (
-    CHANGE_DEFAULT_MANAGER, DEFAULT_FILTER_LANGUAGE, DEFAULT_LANGUAGE,
-)
-
-
-def tof_prefetch(func):
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        query_set = func(*args, **kwargs)
-        return query_set.prefetch_related('_translations__field', '_translations__lang')
-
-    return wrapper
-
-
-def tof_filter(func):
-    @wraps(func)
-    def wrapper(self, *args, **kwargs):
-        new_args, new_kwargs = args, kwargs
-        if issubclass(self.model, TranslationsFieldsMixin):
-            new_args = []
-            for arg in args:
-                if isinstance(arg, Q):
-                    # modify Q objects (warning: recursion ahead)
-                    arg = expand_q_filters(arg, self.model)
-                new_args.append(arg)
-
-            new_kwargs = {}
-            for key, value in list(kwargs.items()):
-                # modify kwargs (warning: recursion ahead)
-                new_key, new_value, repl = expand_filter(self.model, key, value)
-                new_kwargs.update({new_key: new_value})
-
-        return func(self, *new_args, **new_kwargs)
-
-    return wrapper
-
-
-def expand_q_filters(q, root_cls):
-    new_children = []
-    for qi in q.children:
-        if isinstance(qi, tuple):
-            # this child is a leaf node: in Q this is a 2-tuple of:
-            # (filter parameter, value)
-            key, value, repl = expand_filter(root_cls, *qi)
-            query = Q(**{key: value})
-            if repl:
-                query |= Q(**{qi[0]: qi[1]})
-            new_children.append(query)
-        else:
-            # this child is another Q node: recursify!
-            new_children.append(expand_q_filters(qi, root_cls))
-    q.children = new_children
-    return q
-
-
-def expand_filter(model_cls, key, value):
-    field, sep, lookup = key.partition('__')
-    if field in model_cls._field_tof:
-        ct = ContentType.objects.get_for_model(model_cls)
-        query = (Q(field__content_type__id=ct.pk) & Q(field__name=field))  # noqa
-        if DEFAULT_FILTER_LANGUAGE == '__all__':
-            pass
-        elif DEFAULT_FILTER_LANGUAGE == 'current':
-            query &= Q(lang=get_language())
-        elif isinstance(DEFAULT_FILTER_LANGUAGE, str):
-            query &= Q(lang=DEFAULT_FILTER_LANGUAGE)
-        elif isinstance(DEFAULT_FILTER_LANGUAGE, (list, tuple)):
-            query &= Q(lang__in=DEFAULT_FILTER_LANGUAGE)
-        elif isinstance(DEFAULT_FILTER_LANGUAGE, dict):
-            query &= Q(lang__in=DEFAULT_FILTER_LANGUAGE.get(get_language(), (DEFAULT_LANGUAGE, )))
-        else:
-            query &= Q(lang=get_language())
-        query &= Q(**{f'value{sep}{lookup}': value})
-        new_val = Translations.objects.filter(query).values_list('object_id', flat=True)
-        return 'id__in', new_val, True
-    return key, value, False
-
-
-class TranslationsQuerySet(models.QuerySet):
-    @tof_filter
-    def filter(self, *args, **kwargs):  # noqa
-        return super().filter(*args, **kwargs)
-
-    @tof_filter  # noqa
-    def exclude(self, *args, **kwargs):
-        return super().exclude(*args, **kwargs)
-
-    @tof_filter  # noqa
-    def get(self, *args, **kwargs):
-        return super().get(*args, **kwargs)
-
-
-class TranslationsManager(models.Manager):
-    default_name = 'trans_objects'
-    _queryset_class = TranslationsQuerySet
-
-    def __init__(self, name=None):
-        self.default_name = name or self.default_name
-        super().__init__()
-
-    @tof_filter  # noqa
-    def filter(self, *args, **kwargs):  # noqa
-        return super().filter(*args, **kwargs)
-
-    @tof_filter  # noqa
-    def exclude(self, *args, **kwargs):
-        return super().exclude(*args, **kwargs)
-
-    @tof_filter  # noqa
-    def get(self, *args, **kwargs):
-        return super().get(*args, **kwargs)
-
-    @tof_prefetch
-    def get_queryset(self, *args, **kwargs):
-        return super().get_queryset(*args, **kwargs)
+from .settings import CHANGE_DEFAULT_MANAGER
 
 
 class Translations(models.Model):
@@ -153,14 +39,7 @@ class Translations(models.Model):
     value = models.TextField(_('Value'), help_text=_('Value field'))
 
     def __str__(self):
-        """Пока нужно для отладки.
-
-        Потом можно обьявить для других задач, например показывать перевод текущего языка.
-
-        Returns:
-            str
-        """
-        return f'{self.content_object}: lang={self.lang}, field={self.field.name}, value={self.value})'
+        return f'{self.content_object}.{self.field.name}.{self.lang} = {self.value})'
 
 
 class TranslationsFieldsMixin(models.Model):
