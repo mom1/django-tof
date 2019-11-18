@@ -2,7 +2,7 @@
 # @Author: MaxST
 # @Date:   2019-10-30 14:19:55
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-11-17 15:59:51
+# @Last Modified time: 2019-11-18 10:09:34
 from functools import lru_cache
 
 from django.utils.translation import get_language
@@ -65,12 +65,6 @@ class DeferredTranslatedAttribute:
         self.field = field
 
     def __get__(self, instance):
-        if instance is None:
-            return self
-
-        if not getattr(instance, '_end_init', False):
-            return
-
         return instance._all_translations.get(self.get_field_name()) or instance._origin_tof.get(self.get_field_name())
 
     def __set__(self, instance, value):
