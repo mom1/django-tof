@@ -2,7 +2,7 @@
 # @Author: MaxST
 # @Date:   2019-10-23 17:24:33
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-11-18 12:59:43
+# @Last Modified time: 2019-11-18 13:31:58
 
 from django.contrib.contenttypes.fields import (
     GenericForeignKey, GenericRelation,
@@ -60,7 +60,7 @@ class TranslationFieldMixin(models.Model):
         for trans in self._translations.all():
             name = trans.field.name
             trans_obj = kwargs.setdefault(name, TranslatableText(self, name))
-            setattr(trans_obj, trans.lang.pk, trans.value)
+            setattr(trans_obj, trans.lang_id, trans.value)
         return kwargs
 
     def save(self, *args, **kwargs):

@@ -2,7 +2,7 @@
 # @Author: MaxST
 # @Date:   2019-10-30 14:19:55
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-11-18 12:14:02
+# @Last Modified time: 2019-11-18 14:23:07
 from django.utils.translation import get_language
 
 from .settings import DEFAULT_LANGUAGE, FALLBACK_LANGUAGES, SITE_ID
@@ -10,15 +10,18 @@ from .settings import DEFAULT_LANGUAGE, FALLBACK_LANGUAGES, SITE_ID
 
 class TranslatableText:
     def __init__(self, instance, attr, *args, **kwargs):
-        self._origin = instance._origin_tof.get(attr, '')
+        self._origin = instance._origin_tof.get(attr) or ''
         super().__init__(*args, **kwargs)
 
     def __getattr__(self, name):
+        if name in ('resolve_expression', 'prepare_database_save'):
+            raise AttributeError(name)
         attrs = vars(self)
         for val_lang in self.get_fallback_languages(name):
             val = attrs.get(val_lang)
             if val:
                 return val
+        return attrs.get('_origin') or ''
 
     def __str__(self):
         return getattr(self, self.get_lang(), '')
@@ -29,16 +32,13 @@ class TranslatableText:
     def __html__(self):
         return str(self)
 
-    def resolve_expression(self, *args, **kwargs):
-        return str(self)
-
     @staticmethod
     def get_lang():
         lang, *_ = get_language().partition('-')
         return lang
 
     def get_fallback_languages(self, attr):
-        for fallback in (attr, FALLBACK_LANGUAGES.get(attr), FALLBACK_LANGUAGES.get(SITE_ID), DEFAULT_LANGUAGE, '_origin'):
+        for fallback in (attr, FALLBACK_LANGUAGES.get(attr), FALLBACK_LANGUAGES.get(SITE_ID), DEFAULT_LANGUAGE):
             if isinstance(fallback, (list, tuple)):
                 yield from (lang for lang in fallback if lang != attr)
             else:
@@ -79,7 +79,6 @@ class DeferredTranslatedAttribute:
     def save(self, instance):
         val = instance._all_translations.get(self.get_field_name())
         if val:
-            str_val = str(val)
             translation, _ = instance._translations.get_or_create(field=self.obj_field, lang_id=val.get_lang())
-            translation.value = str_val
+            translation.value = val
             translation.save()

@@ -2,12 +2,11 @@
 # @Author: MaxST
 # @Date:   2019-11-15 19:17:59
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-11-18 12:59:03
+# @Last Modified time: 2019-11-18 15:15:41
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import Q
 from django.test import TestCase
 from django.utils.translation import override
-
 from main.models import Wine
 from mixer.backend.django import mixer
 
@@ -30,7 +29,7 @@ def clean_model(cls, attr='title'):
         restore_cls_after_translate(cls, attr, False)
 
 
-class TranslatableFieldsTestCase(TestCase):
+class TranslatableFieldTestCase(TestCase):
     @classmethod
     def setUpTestData(cls):
         clean_model(Wine)
@@ -60,7 +59,7 @@ class TranslatableFieldsTestCase(TestCase):
         self.assertEqual(str(fld), 'wine|Title')
 
 
-class TranslationsTestCase(TestCase):
+class TranslationTestCase(TestCase):
     @classmethod
     def setUpTestData(cls):
         clean_model(Wine)
@@ -91,8 +90,8 @@ class TranslationFieldMixinTestCase(TestCase):
     def test_save(self):
         wine1 = Wine.objects.first()
         title_de = 'Wine 1 de'
-        wine1.title = title_de
         with override('de'):
+            wine1.title = title_de
             wine1.save()
 
         wine1 = Wine.objects.first()
@@ -101,6 +100,22 @@ class TranslationFieldMixinTestCase(TestCase):
     def test_get(self):
         self.assertTrue(isinstance(Wine.title, property))
         Wine._del_deferred_translated_field('jopa')
+
+    def test_prefetch(self):
+        wine1 = Wine.objects.first()
+        wine1.title = f'{wine1.title}'
+        wine1.save()
+        with self.assertNumQueries(3):
+            for wine in Wine.objects.all():
+                self.assertIsNotNone(wine.title)
+        mixer.cycle(5).blend(Wine, title=mixer.sequence(lambda c: f'Wine {c}'))
+        with override('en'):
+            for wine in Wine.objects.all():
+                wine.title = f'{wine.title} en'
+                wine.save()
+        with self.assertNumQueries(3):
+            for wine in Wine.objects.all():
+                self.assertIsNotNone(wine.title)
 
 
 class DeferredTranslatedAttributeTestCase(TestCase):
@@ -177,7 +192,8 @@ class TranslatableTextTestCase(TestCase):
         self.assertEqual(str(val), 'Wine 1')
         self.assertEqual(repr(val), str(val))
         self.assertEqual(str(val), val.__html__())
-        self.assertEqual(str(val), val.resolve_expression())
+        self.assertFalse(hasattr(val, 'resolve_expression'))
+        self.assertFalse(hasattr(val, 'prepare_database_save'))
         FALLBACK_LANGUAGES['aa'] = 'nl'
         with override('aa'):
             self.assertEqual(str(val), title_nl)

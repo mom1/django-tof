@@ -2,7 +2,7 @@
 # @Author: MaxST
 # @Date:   2019-11-17 15:03:06
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-11-18 12:59:06
+# @Last Modified time: 2019-11-18 14:19:28
 from functools import wraps
 
 from django.contrib.contenttypes.models import ContentType
@@ -16,7 +16,7 @@ def tof_prefetch(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
         query_set = func(*args, **kwargs)
-        return query_set.prefetch_related('_translations__field', '_translations__lang')
+        return query_set.prefetch_related('_translations__field')
 
     return wrapper
 

@@ -6,7 +6,7 @@
   <body>
     <h1>Current language is:</h1>
     <h2>{{ request.LANGUAGE_CODE }}</h2>
-    {% for wine in wines.all %}
+    {% for wine in wines %}
       {{ wine.title }}|{{ wine.description }} <br>
     {% endfor %}
   </body>
