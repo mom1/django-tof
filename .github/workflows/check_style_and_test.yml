@@ -29,7 +29,7 @@ jobs:
           # exit-zero treats all errors as warnings.
           flake8 . --count --exit-zero --statistics
       - name: Test with django test
-          run: |
-            cd ./example_project/
-            python -m poetry install
-            python -m poetry run python manage.py test tof
+        run: |
+          cd ./example_project/
+          python -m poetry install
+          python -m poetry run python manage.py test tof
