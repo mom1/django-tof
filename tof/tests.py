@@ -2,7 +2,7 @@
 # @Author: MaxST
 # @Date:   2019-11-15 19:17:59
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-11-18 15:15:41
+# @Last Modified time: 2019-11-18 15:21:03
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import Q
 from django.test import TestCase
@@ -108,7 +108,7 @@ class TranslationFieldMixinTestCase(TestCase):
         with self.assertNumQueries(3):
             for wine in Wine.objects.all():
                 self.assertIsNotNone(wine.title)
-        mixer.cycle(5).blend(Wine, title=mixer.sequence(lambda c: f'Wine {c}'))
+        mixer.cycle(5).blend(Wine, title=mixer.sequence('Wine {0}'))
         with override('en'):
             for wine in Wine.objects.all():
                 wine.title = f'{wine.title} en'
