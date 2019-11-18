@@ -2,14 +2,15 @@
 # @Author: MaxST
 # @Date:   2019-10-28 12:30:45
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-11-18 12:59:05
+# @Last Modified time: 2019-11-18 17:41:39
 from django.contrib import admin
 from django.contrib.contenttypes.models import ContentType
 from django.http import Http404, JsonResponse
 from django.urls import reverse
+from django.utils.translation import gettext_lazy as _
 
 from .forms import TranslatableFieldsForm, TranslationsForm
-from .models import Language, TranslatableFields, Translations
+from .models import Language, TranslatableField, Translation
 
 
 @admin.register(ContentType)
@@ -18,7 +19,7 @@ class ContentTypeAdmin(admin.ModelAdmin):
 
 
 @admin.register(Language)
-class AdminLanguage(admin.ModelAdmin):
+class LanguageAdmin(admin.ModelAdmin):
     search_fields = ('iso', )
     list_display = ('iso', 'is_active')
     list_editable = ('is_active', )
@@ -29,7 +30,7 @@ class AdminLanguage(admin.ModelAdmin):
 
 
 @admin.register(TranslatableField)
-class AdminTranslatableFields(admin.ModelAdmin):
+class TranslatableFieldsAdmin(admin.ModelAdmin):
     form = TranslatableFieldsForm
     search_fields = ('name', 'title')
     list_display = ('content_type', 'name', 'title')
@@ -60,12 +61,12 @@ class AdminTranslatableFields(admin.ModelAdmin):
                     'fields': [f.attname for f in model._meta.get_fields()],
                 })
             except Exception:
-                return Http404('Error get content type')
+                return JsonResponse({'errors': _('You choose wrong content type')})
         return super()._changeform_view(request, object_id, form_url, extra_context)
 
 
 @admin.register(Translation)
-class AdminTranslations(admin.ModelAdmin):
+class TranslationAdmin(admin.ModelAdmin):
     form = TranslationsForm
     list_display = ('content_object', 'lang', 'field', 'value')
     list_filter = ('content_type', )
@@ -92,11 +93,12 @@ class AdminTranslations(admin.ModelAdmin):
                 ct = TranslatableField.objects.get(id=fld_id).content_type
                 id_obj = request.GET.get('id_obj')
                 model = ct.model_class()
+                url = reverse(self.url_name % (self.admin_site.name, model._meta.app_label, model._meta.model_name))
                 return JsonResponse({
                     'pk': ct.pk,
-                    'url': reverse(self.url_name % (self.admin_site.name, model._meta.app_label, model._meta.model_name)),
+                    'url': url,
                     'text': str(model.objects.get(pk=id_obj)) if id_obj else '',
                 })
             except Exception:
-                return Http404('Error get content type')
+                return JsonResponse({'errors': _('You choose wrong content type')})
         return super()._changeform_view(request, object_id, form_url, extra_context)

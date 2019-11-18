@@ -2,7 +2,7 @@
 * @Author: MaxST
 * @Date:   2019-11-09 13:52:25
 * @Last Modified by:   MaxST
-* @Last Modified time: 2019-11-18 17:22:39
+* @Last Modified time: 2019-11-18 17:44:16
 */
 (function ($) {
   window.generic_view_json = function (fields, text) {
@@ -55,6 +55,9 @@
       $.get({
         url: '?id_ct=' + $(this).val(),
         success: function (data, textStatus, jqXHR) {
+          if (data.errors) {
+            return alert(data.errors)
+          }
           generic_view_json(data.fields, data.text);
         },
         dataType: "json"
