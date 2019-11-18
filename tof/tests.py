@@ -2,7 +2,7 @@
 # @Author: MaxST
 # @Date:   2019-11-15 19:17:59
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-11-18 10:11:44
+# @Last Modified time: 2019-11-18 12:59:03
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import Q
 from django.test import TestCase
@@ -12,21 +12,21 @@ from main.models import Wine
 from mixer.backend.django import mixer
 
 from .models import (
-    Language, TranslatableFields, Translations,
-    TranslationsFieldsMixin, restore_cls_after_translate,
+    Language, TranslatableField, Translation,
+    TranslationFieldMixin, restore_cls_after_translate,
 )
 from .settings import FALLBACK_LANGUAGES
 
 
 def create_field(name='title', cls=None):
     ct_wine = ContentType.objects.get_for_model(cls or Wine)
-    fld = TranslatableFields.objects.first()
+    fld = TranslatableField.objects.first()
     if not fld:
-        mixer.blend(TranslatableFields, name=name, title=name.title(), content_type=ct_wine)
+        mixer.blend(TranslatableField, name=name, title=name.title(), content_type=ct_wine)
 
 
 def clean_model(cls, attr='title'):
-    if issubclass(cls, TranslationsFieldsMixin):
+    if issubclass(cls, TranslationFieldMixin):
         restore_cls_after_translate(cls, attr, False)
 
 
@@ -38,25 +38,25 @@ class TranslatableFieldsTestCase(TestCase):
 
     def test_save(self):
         wine1 = Wine.objects.first()
-        self.assertNotIsInstance(wine1, TranslationsFieldsMixin)
+        self.assertNotIsInstance(wine1, TranslationFieldMixin)
         create_field()
-        self.assertIsInstance(wine1, TranslationsFieldsMixin)
+        self.assertIsInstance(wine1, TranslationFieldMixin)
 
     def test_delete(self):
         create_field()
         wine1 = Wine.objects.first()
-        self.assertIsInstance(wine1, TranslationsFieldsMixin)
-        fld = TranslatableFields.objects.first()
+        self.assertIsInstance(wine1, TranslationFieldMixin)
+        fld = TranslatableField.objects.first()
         fld.delete()
         wine1 = Wine.objects.first()
-        self.assertNotIsInstance(wine1, TranslationsFieldsMixin)
+        self.assertNotIsInstance(wine1, TranslationFieldMixin)
         self.assertEqual(wine1.title, 'Wine 1')
         wine2 = mixer.blend(Wine, title='Wine 2')
         self.assertEqual(wine2.title, 'Wine 2')
 
     def test_str(self):
         create_field()
-        fld = TranslatableFields.objects.first()
+        fld = TranslatableField.objects.first()
         self.assertEqual(str(fld), 'wine|Title')
 
 
@@ -68,20 +68,20 @@ class TranslationsTestCase(TestCase):
         create_field()
 
     def test_str(self):
-        fld = TranslatableFields.objects.first()
+        fld = TranslatableField.objects.first()
         lang_en = Language.objects.get(iso='en')
         new_title = 'Wine 1 en'
         wine1 = Wine.objects.first()
 
         self.assertEqual(wine1.title, 'Wine 1')
 
-        trans = mixer.blend(Translations, content_object=wine1, field=fld, lang=lang_en, value=new_title)
+        trans = mixer.blend(Translation, content_object=wine1, field=fld, lang=lang_en, value=new_title)
         str_make = f'{wine1}.{fld.name}.{lang_en} = {new_title})'
 
         self.assertEqual(str(trans), str_make)
 
 
-class TranslationsFieldsMixinTestCase(TestCase):
+class TranslationFieldMixinTestCase(TestCase):
     @classmethod
     def setUpTestData(cls):
         clean_model(Wine)
@@ -173,13 +173,11 @@ class TranslatableTextTestCase(TestCase):
                 wine1.save()
 
         val = wine1.title
-        for attr in ('resolve_expression', 'as_sql'):
-            with self.assertRaises(AttributeError):
-                getattr(val, attr)
 
         self.assertEqual(str(val), 'Wine 1')
         self.assertEqual(repr(val), str(val))
         self.assertEqual(str(val), val.__html__())
+        self.assertEqual(str(val), val.resolve_expression())
         FALLBACK_LANGUAGES['aa'] = 'nl'
         with override('aa'):
             self.assertEqual(str(val), title_nl)

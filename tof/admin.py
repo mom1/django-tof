@@ -2,14 +2,14 @@
 # @Author: MaxST
 # @Date:   2019-10-28 12:30:45
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-11-14 22:56:20
+# @Last Modified time: 2019-11-18 12:59:05
 from django.contrib import admin
 from django.contrib.contenttypes.models import ContentType
 from django.http import Http404, JsonResponse
 from django.urls import reverse
 
 from .forms import TranslationsForm
-from .models import Language, TranslatableFields, Translations
+from .models import Language, TranslatableField, Translation
 
 
 @admin.register(ContentType)
@@ -28,7 +28,7 @@ class AdminLanguage(admin.ModelAdmin):
         return queryset.filter(is_active=True), use_distinct
 
 
-@admin.register(TranslatableFields)
+@admin.register(TranslatableField)
 class AdminTranslatableFields(admin.ModelAdmin):
     search_fields = ('name', 'title')
     autocomplete_fields = ('content_type', )
@@ -38,7 +38,7 @@ class AdminTranslatableFields(admin.ModelAdmin):
             obj.delete()
 
 
-@admin.register(Translations)
+@admin.register(Translation)
 class AdminTranslations(admin.ModelAdmin):
     form = TranslationsForm
     list_display = ('content_object', 'lang', 'field', 'value')
@@ -63,7 +63,7 @@ class AdminTranslations(admin.ModelAdmin):
         fld_id = request.GET.get('field_id')
         if fld_id:
             try:
-                ct = TranslatableFields.objects.get(id=fld_id).content_type
+                ct = TranslatableField.objects.get(id=fld_id).content_type
                 id_obj = request.GET.get('id_obj')
                 model = ct.model_class()
                 return JsonResponse({

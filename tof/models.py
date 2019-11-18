@@ -2,7 +2,7 @@
 # @Author: MaxST
 # @Date:   2019-10-23 17:24:33
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-11-17 15:21:10
+# @Last Modified time: 2019-11-18 12:59:43
 
 from django.contrib.contenttypes.fields import (
     GenericForeignKey, GenericRelation,
@@ -13,25 +13,25 @@ from django.db.models import Q
 from django.utils.functional import cached_property
 from django.utils.translation import gettext_lazy as _
 
-from .managers import TranslationsManager
+from .managers import TranslationManager
 from .query_utils import DeferredTranslatedAttribute, TranslatableText
 from .settings import CHANGE_DEFAULT_MANAGER
 
 
-class Translations(models.Model):
+class Translation(models.Model):
     class Meta:
         verbose_name = _('Translation')
-        verbose_name_plural = _('Translations')
+        verbose_name_plural = _('Translation')
         unique_together = ('content_type', 'object_id', 'field', 'lang')
 
     content_type = models.ForeignKey(ContentType, limit_choices_to=~Q(app_label='tof'), on_delete=models.CASCADE)
     object_id = models.PositiveIntegerField(help_text=_('First set the field'))
     content_object = GenericForeignKey()
 
-    field = models.ForeignKey('TranslatableFields', related_name='translations', on_delete=models.CASCADE)
+    field = models.ForeignKey('TranslatableField', related_name='Translation', on_delete=models.CASCADE)
     lang = models.ForeignKey(
         'Language',
-        related_name='translations',
+        related_name='Translation',
         limit_choices_to=Q(is_active=True),
         on_delete=models.CASCADE,
     )
@@ -42,13 +42,13 @@ class Translations(models.Model):
         return f'{self.content_object}.{self.field.name}.{self.lang} = {self.value})'
 
 
-class TranslationsFieldsMixin(models.Model):
+class TranslationFieldMixin(models.Model):
     class Meta:
         abstract = True
 
     _end_init = False
     _field_tof = {}
-    _translations = GenericRelation(Translations, verbose_name=_('Translations'))
+    _translations = GenericRelation(Translation, verbose_name=_('Translation'))
 
     def __init__(self, *args, **kwargs):
         self._origin_tof = {}
@@ -69,21 +69,21 @@ class TranslationsFieldsMixin(models.Model):
             def_trans_attrs.save(self)
 
     @classmethod
-    def _add_deferred_translated_field(cls, name):
-        translator = cls._field_tof[name] = DeferredTranslatedAttribute(cls._meta.get_field(name))
+    def _add_deferred_translated_field(cls, field):
+        translator = cls._field_tof[field.name] = DeferredTranslatedAttribute(cls._meta.get_field(field.name), field)
         setattr(
-            cls, name,
+            cls, field.name,
             property(
                 fget=translator.__get__,
                 fset=translator.__set__,
                 fdel=translator.__delete__,
-                doc=translator.__repr__(),
+                doc=repr(translator),
             ))
 
     @classmethod
     def _del_deferred_translated_field(cls, name):
         try:
-            fld = cls._field_tof[name].field
+            fld = cls._field_tof[name].model_field
             del cls._field_tof[name]
             delattr(cls, name)
             fld.contribute_to_class(cls, name)
@@ -91,7 +91,7 @@ class TranslationsFieldsMixin(models.Model):
             pass
 
 
-class TranslatableFields(models.Model):
+class TranslatableField(models.Model):
     class Meta:
         verbose_name = _('Translatable field')
         verbose_name_plural = _('Translatable fields')
@@ -107,7 +107,7 @@ class TranslatableFields(models.Model):
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
-        prepare_cls_for_translate(self.content_type.model_class(), self.name)
+        prepare_cls_for_translate(self.content_type.model_class(), self)
 
     def delete(self, *args, **kwargs):
         cls = self.content_type.model_class()
@@ -118,7 +118,7 @@ class TranslatableFields(models.Model):
         restore_cls_after_translate(
             cls,
             name,
-            ContentType.objects.filter(translatablefields__isnull=False, id=ct_pk).exists(),
+            ContentType.objects.filter(translatablefield__isnull=False, id=ct_pk).exists(),
         )
 
 
@@ -135,11 +135,11 @@ class Language(models.Model):
         return self.iso
 
 
-def prepare_cls_for_translate(cls, attr, trans_mng=None):
-    if not issubclass(cls, TranslationsFieldsMixin):
-        trans_mng = trans_mng or TranslationsManager()
-        cls.__bases__ = (TranslationsFieldsMixin, ) + cls.__bases__
-        if CHANGE_DEFAULT_MANAGER and not isinstance(cls._default_manager, TranslationsManager):
+def prepare_cls_for_translate(cls, obj_field, trans_mng=None):
+    if not issubclass(cls, TranslationFieldMixin):
+        trans_mng = trans_mng or TranslationManager()
+        cls.__bases__ = (TranslationFieldMixin, ) + cls.__bases__
+        if CHANGE_DEFAULT_MANAGER and not isinstance(cls._default_manager, TranslationManager):
             trans_mng.contribute_to_class(cls, trans_mng.default_name)
             cls._meta.default_manager_name = trans_mng.default_name
             # FIXME
@@ -147,16 +147,15 @@ def prepare_cls_for_translate(cls, attr, trans_mng=None):
             del cls.objects
             trans_mng.contribute_to_class(cls, 'objects')
             origin.contribute_to_class(cls, 'objects_origin')
-    cls._add_deferred_translated_field(attr)
+    cls._add_deferred_translated_field(obj_field)
 
 
 def restore_cls_after_translate(cls, attr, keep_mixin):
     cls._del_deferred_translated_field(attr)
-    if issubclass(cls, TranslationsFieldsMixin) and not keep_mixin:
+    if issubclass(cls, TranslationFieldMixin) and not keep_mixin:
         cls.__bases__ = cls.__bases__[1:]
-        if CHANGE_DEFAULT_MANAGER and isinstance(cls._default_manager, TranslationsManager):
-            name = cls._default_manager.default_name
-            delattr(cls, name)
+        if CHANGE_DEFAULT_MANAGER and isinstance(cls._default_manager, TranslationManager):
+            delattr(cls, cls._default_manager.default_name)
             cls._meta.default_manager_name = None
             mng = cls.objects_origin
             del cls.objects

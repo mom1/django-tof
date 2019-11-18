@@ -2,7 +2,7 @@
 # @Author: MaxST
 # @Date:   2019-11-17 15:03:06
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-11-17 15:09:40
+# @Last Modified time: 2019-11-18 12:59:06
 from functools import wraps
 
 from django.contrib.contenttypes.models import ContentType
@@ -24,9 +24,9 @@ def tof_prefetch(func):
 def tof_filter(func):
     @wraps(func)
     def wrapper(self, *args, **kwargs):
-        from .models import TranslationsFieldsMixin
+        from .models import TranslationFieldMixin
         new_args, new_kwargs = args, kwargs
-        if issubclass(self.model, TranslationsFieldsMixin):
+        if issubclass(self.model, TranslationFieldMixin):
             new_args = []
             for arg in args:
                 if isinstance(arg, Q):
@@ -66,7 +66,7 @@ def expand_q_filters(q, root_cls):
 def expand_filter(model_cls, key, value):
     field, sep, lookup = key.partition('__')
     if field in model_cls._field_tof:
-        from .models import Translations
+        from .models import Translation
         ct = ContentType.objects.get_for_model(model_cls)
         query = (Q(field__content_type__id=ct.pk) & Q(field__name=field))  # noqa
         if DEFAULT_FILTER_LANGUAGE == '__all__':
@@ -82,6 +82,6 @@ def expand_filter(model_cls, key, value):
         else:
             query &= Q(lang=get_language())
         query &= Q(**{f'value{sep}{lookup}': value})
-        new_val = Translations.objects.filter(query).values_list('object_id', flat=True)
+        new_val = Translation.objects.filter(query).values_list('object_id', flat=True)
         return 'id__in', new_val, True
     return key, value, False

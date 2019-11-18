@@ -2,9 +2,7 @@
 # @Author: MaxST
 # @Date:   2019-10-30 14:19:55
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-11-18 10:09:34
-from functools import lru_cache
-
+# @Last Modified time: 2019-11-18 12:14:02
 from django.utils.translation import get_language
 
 from .settings import DEFAULT_LANGUAGE, FALLBACK_LANGUAGES, SITE_ID
@@ -12,57 +10,53 @@ from .settings import DEFAULT_LANGUAGE, FALLBACK_LANGUAGES, SITE_ID
 
 class TranslatableText:
     def __init__(self, instance, attr, *args, **kwargs):
-        self.instance = instance
         self._origin = instance._origin_tof.get(attr, '')
         super().__init__(*args, **kwargs)
 
     def __getattr__(self, name):
-        if name in ('resolve_expression', 'as_sql'):  # FIXME hasattr catch AttributeError
-            raise AttributeError
+        attrs = vars(self)
         for val_lang in self.get_fallback_languages(name):
-            if val_lang in vars(self):
-                return vars(self).get(val_lang)
-        return self._origin
+            val = attrs.get(val_lang)
+            if val:
+                return val
 
     def __str__(self):
         return getattr(self, self.get_lang(), '')
 
     def __repr__(self):
-        return self.__str__()
+        return str(self)
 
     def __html__(self):
-        return self.__str__()
+        return str(self)
 
-    def get_lang(self):
+    def resolve_expression(self, *args, **kwargs):
+        return str(self)
+
+    @staticmethod
+    def get_lang():
         lang, *_ = get_language().partition('-')
         return lang
 
-    @lru_cache(maxsize=32)
-    def get_fallback_languages(self, lang):
-        def_val = (DEFAULT_LANGUAGE, )
-        fallback_languages = FALLBACK_LANGUAGES.get(
-            lang,
-            FALLBACK_LANGUAGES.get(
-                SITE_ID,
-                def_val,
-            ),
-        ) or def_val
-
-        if not isinstance(fallback_languages, (list, tuple)):
-            fallback_languages = (fallback_languages, )
-        return (lang, ) + tuple(fl for fl in fallback_languages if fl != lang) + def_val
+    def get_fallback_languages(self, attr):
+        for fallback in (attr, FALLBACK_LANGUAGES.get(attr), FALLBACK_LANGUAGES.get(SITE_ID), DEFAULT_LANGUAGE, '_origin'):
+            if isinstance(fallback, (list, tuple)):
+                yield from (lang for lang in fallback if lang != attr)
+            else:
+                yield fallback
 
 
 class DeferredTranslatedAttribute:
     """Получит значение перевода поля для инстанса.
 
         Args:
-            field: Поле модели
+            model_field: Поле модели
+            obj_field: Объект поля. тип TranslatableField
     """
-    __slots__ = ('field', )
+    __slots__ = ('model_field', 'obj_field')
 
-    def __init__(self, field):
-        self.field = field
+    def __init__(self, field, obj_field):
+        self.model_field = field
+        self.obj_field = obj_field
 
     def __get__(self, instance):
         return instance._all_translations.get(self.get_field_name()) or instance._origin_tof.get(self.get_field_name())
@@ -71,7 +65,7 @@ class DeferredTranslatedAttribute:
         if getattr(instance, '_end_init', False):
             attr = self.get_field_name()
             trans_text = instance._all_translations.setdefault(attr, TranslatableText(instance, attr))
-            setattr(trans_text, self.get_lang(), str(value))
+            setattr(trans_text, trans_text.get_lang(), str(value))
         else:
             instance._origin_tof[self.get_field_name()] = value
 
@@ -79,30 +73,13 @@ class DeferredTranslatedAttribute:
         del instance._all_translations[self.get_field_name()]
         del instance._field_tof[self.get_field_name()]
 
-    def get_lang(self):
-        lang, *_ = get_language().partition('-')
-        return lang
-
     def get_field_name(self, ct=None):
-        return self.field.attname
-
-    def get_param(self, instance):
-        from .models import Language, TranslatableFields
-        opts = instance._meta.concrete_model._meta
-        fld_obj = TranslatableFields.objects.filter(
-            name=self.get_field_name(),
-            content_type__app_label=opts.app_label,
-            content_type__model=opts.object_name.lower(),
-        ).first()
-        return {
-            'field': fld_obj,
-            'lang': Language.objects.filter(iso=self.get_lang()).first(),
-        }
+        return self.model_field.attname
 
     def save(self, instance):
         val = instance._all_translations.get(self.get_field_name())
         if val:
             str_val = str(val)
-            translation, _ = instance._translations.get_or_create(**self.get_param(instance))
+            translation, _ = instance._translations.get_or_create(field=self.obj_field, lang_id=val.get_lang())
             translation.value = str_val
             translation.save()
