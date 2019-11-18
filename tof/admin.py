@@ -2,7 +2,7 @@
 # @Author: MaxST
 # @Date:   2019-10-28 12:30:45
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-11-17 14:33:00
+# @Last Modified time: 2019-11-18 12:59:05
 from django.contrib import admin
 from django.contrib.contenttypes.models import ContentType
 from django.http import Http404, JsonResponse
@@ -12,17 +12,23 @@ from .forms import TranslatableFieldsForm, TranslationsForm
 from .models import Language, TranslatableFields, Translations
 
 
-@admin.register(Language)
-class AdminLanguage(admin.ModelAdmin):
-    search_fields = ('iso_639_1', )
-
-
 @admin.register(ContentType)
 class ContentTypeAdmin(admin.ModelAdmin):
     search_fields = ('app_label', 'model')
 
 
-@admin.register(TranslatableFields)
+@admin.register(Language)
+class AdminLanguage(admin.ModelAdmin):
+    search_fields = ('iso', )
+    list_display = ('iso', 'is_active')
+    list_editable = ('is_active', )
+
+    def get_search_results(self, request, queryset, search_term):
+        queryset, use_distinct = super().get_search_results(request, queryset, search_term)
+        return queryset.filter(is_active=True), use_distinct
+
+
+@admin.register(TranslatableField)
 class AdminTranslatableFields(admin.ModelAdmin):
     form = TranslatableFieldsForm
     search_fields = ('name', 'title')
@@ -58,7 +64,7 @@ class AdminTranslatableFields(admin.ModelAdmin):
         return super()._changeform_view(request, object_id, form_url, extra_context)
 
 
-@admin.register(Translations)
+@admin.register(Translation)
 class AdminTranslations(admin.ModelAdmin):
     form = TranslationsForm
     list_display = ('content_object', 'lang', 'field', 'value')
@@ -81,11 +87,10 @@ class AdminTranslations(admin.ModelAdmin):
 
     def _changeform_view(self, request, object_id, form_url, extra_context):
         fld_id = request.GET.get('field_id')
-
-        id_obj = request.GET.get('id_obj')
         if fld_id:
             try:
-                ct = TranslatableFields.objects.get(id=fld_id).content_type
+                ct = TranslatableField.objects.get(id=fld_id).content_type
+                id_obj = request.GET.get('id_obj')
                 model = ct.model_class()
                 return JsonResponse({
                     'pk': ct.pk,

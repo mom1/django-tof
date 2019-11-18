@@ -2,11 +2,11 @@
 * @Author: MaxST
 * @Date:   2019-11-09 13:52:25
 * @Last Modified by:   MaxST
-* @Last Modified time: 2019-11-12 21:09:24
+* @Last Modified time: 2019-11-17 15:00:09
 */
 (function($){
 
-  window.generic_view_json = function(self,url,text){
+  window.generic_view_json = function(url,text){
     var $drop = $('#id_object_id');
     var $select = $drop;
     var value = $drop.val();
@@ -63,7 +63,7 @@
         url: '?' + Object.keys(params).map(function(k) {return esc(k) + '=' + esc(params[k]);}).join('&'),
         success: function (data, textStatus, jqXHR) {
           $('#id_content_type').val(data.pk);
-          generic_view_json(document.querySelector('#id_content_type'), data.url, data.text);
+          generic_view_json(data.url, data.text);
         },
         dataType: "json"
       });
