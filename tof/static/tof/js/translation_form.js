@@ -2,23 +2,20 @@
 * @Author: MaxST
 * @Date:   2019-11-09 13:52:25
 * @Last Modified by:   MaxST
-* @Last Modified time: 2019-11-17 15:00:09
+* @Last Modified time: 2019-11-18 17:45:34
 */
-(function($){
-
-  window.generic_view_json = function(url,text){
+(function ($) {
+  window.generic_view_json = function (url, text) {
     var $drop = $('#id_object_id');
     var $select = $drop;
     var value = $drop.val();
     var old_url = $drop.attr('data-ajax--url');
-
-    if( !$select.parent().is(".related-widget-wrapper")){
+    if (! $select.parent().is(".related-widget-wrapper")) {
       $select = $('<div class="related-widget-wrapper"/>');
       $drop.replaceWith($select);
     } else {
       $select = $select.parent();
     }
-
     var sel = $('<select/>');
     sel.attr({
       'id': 'id_object_id',
@@ -29,39 +26,43 @@
       'data-ajax--cache': true,
       'data-ajax--delay': 250,
       'data-ajax--type': 'GET',
-      'data-ajax--url':  url,
+      'data-ajax--url': url,
       'data-allow-clear': false,
       'data-placeholder': '',
       'data-theme': 'admin-autocomplete'
     });
-
     if (value && text) {
-      sel.append('<option value="'+value+'" >'+text+'</option>');
+      sel.append('<option value="' + value + '" >' + text + '</option>');
     }
     $select.html(sel);
     return $('.admin-autocomplete').not('[name*=__prefix__]').djangoAdminSelect2();
   };
-
-  $(document).ready(function(){
+  $(document).ready(function () {
     $('#id_field').change();
-
     $('#id_field').change(function () {
       $('#id_object_id').removeAttr('readonly');
-
       if (! $(this).val()) {
         $('#id_object_id').attr('readonly', true);
         return;
       }
       var params = {
-        'field_id': $(this).val(),
+        'field_id': $(this).val()
       };
       if ($('#id_object_id').is('input')) {
         params['id_obj'] = $('#id_object_id').val();
       }
       var esc = encodeURIComponent;
       $.get({
-        url: '?' + Object.keys(params).map(function(k) {return esc(k) + '=' + esc(params[k]);}).join('&'),
+        url: '?' + Object
+          .keys(params)
+          .map(function (k) {
+            return esc(k) + '=' + esc(params[k]);
+          })
+          .join('&'),
         success: function (data, textStatus, jqXHR) {
+          if (data.errors) {
+            return alert(data.errors)
+          }
           $('#id_content_type').val(data.pk);
           generic_view_json(data.url, data.text);
         },
