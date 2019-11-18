@@ -2,10 +2,10 @@
 # @Author: MaxST
 # @Date:   2019-10-28 12:30:45
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-11-18 17:41:39
+# @Last Modified time: 2019-11-18 18:21:06
 from django.contrib import admin
 from django.contrib.contenttypes.models import ContentType
-from django.http import Http404, JsonResponse
+from django.http import JsonResponse
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 
