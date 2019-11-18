@@ -12,6 +12,8 @@ django-tof = {path = "..", develop = true}
 [tool.poetry.dev-dependencies]
 ipdb = "*"
 django-debug-toolbar = "*"
+mixer = "^6.1.3"
+coverage = "^4.5.4"
 
 [build-system]
 requires = ["poetry>=0.12"]
