@@ -23,4 +23,8 @@ jobs:
       - name: Test with django test
         run: |
           cd ./example_project/
-          python -m poetry run python manage.py test tof
+          python -m poetry run coverage run --source='tof' manage.py test tof
+      - name: Tests report
+        run: |
+          cd ./example_project/
+          python -m poetry run coverage report
