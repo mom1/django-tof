@@ -2,12 +2,12 @@
 # @Author: MaxST
 # @Date:   2019-10-28 12:30:45
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-11-19 15:33:47
+# @Last Modified time: 2019-11-19 17:31:26
 import logging
 
 from django.contrib import admin
 from django.contrib.contenttypes.admin import (
-    GenericStackedInline, GenericTabularInline,
+    GenericInlineModelAdmin, GenericStackedInline, GenericTabularInline,
 )
 from django.contrib.contenttypes.models import ContentType
 from django.http import JsonResponse
@@ -114,13 +114,15 @@ class TranslationAdmin(admin.ModelAdmin):
         return super()._changeform_view(request, object_id, form_url, extra_context)
 
 
-class TranslationStackedInline(GenericStackedInline):
+class TranslationInline(GenericInlineModelAdmin):
     model = Translation
     extra = 0
     autocomplete_fields = ('field', 'lang')
 
 
-class TranslationTabularInline(GenericTabularInline):
-    model = Translation
-    extra = 0
-    autocomplete_fields = ('field', 'lang')
+class TranslationStackedInline(TranslationInline, GenericStackedInline):
+    pass
+
+
+class TranslationTabularInline(TranslationInline, GenericTabularInline):
+    pass
