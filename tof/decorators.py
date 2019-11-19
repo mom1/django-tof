@@ -2,7 +2,7 @@
 # @Author: MaxST
 # @Date:   2019-11-17 15:03:06
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-11-19 12:44:25
+# @Last Modified time: 2019-11-19 17:11:41
 from functools import wraps
 
 from django.contrib.contenttypes.models import ContentType
@@ -12,13 +12,18 @@ from django.utils.translation import get_language
 from .settings import DEFAULT_FILTER_LANGUAGE, DEFAULT_LANGUAGE
 
 
-def tof_prefetch(func):
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        query_set = func(*args, **kwargs)
-        return query_set.prefetch_related('_translations__field')
+def tof_prefetch(fld=''):
+    def _tof_prefetch(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            query_set = func(*args, **kwargs)
+            flds = fld if isinstance(fld, (list, tuple)) else (fld, )
+            entrys = [f"{i and f'{i}__' or ''}_translations__field" for i in flds]
+            return query_set.prefetch_related(*entrys)
 
-    return wrapper
+        return wrapper
+
+    return _tof_prefetch
 
 
 def tof_filter(func):

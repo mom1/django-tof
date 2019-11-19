@@ -2,7 +2,7 @@
 # @Author: MaxST
 # @Date:   2019-11-15 19:17:59
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-11-19 13:19:19
+# @Last Modified time: 2019-11-19 17:15:56
 from django.contrib.admin.models import LogEntry
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import Q
@@ -84,7 +84,7 @@ class TranslationTestCase(TestCase):
         self.assertEqual(wine1.title, 'Wine 1')
 
         trans = mixer.blend(Translation, content_object=wine1, field=fld, lang=lang_en, value=new_title)
-        str_make = f'{wine1}.{fld.name}.{lang_en} = {new_title})'
+        str_make = f'{wine1}.{fld.name}.{lang_en} = "{new_title}"'
 
         self.assertEqual(str(trans), str_make)
 

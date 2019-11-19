@@ -2,7 +2,7 @@
 # @Author: MaxST
 # @Date:   2019-10-23 17:24:33
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-11-19 13:08:21
+# @Last Modified time: 2019-11-19 15:27:21
 
 from django.contrib.contenttypes.fields import (
     GenericForeignKey, GenericRelation,
@@ -39,7 +39,7 @@ class Translation(models.Model):
     value = models.TextField(_('Value'), help_text=_('Value field'))
 
     def __str__(self):
-        return f'{self.content_object}.{self.field.name}.{self.lang} = {self.value})'
+        return f'{self.content_object}.{self.field.name}.{self.lang} = "{self.value}"'
 
 
 class TranslationFieldMixin(models.Model):

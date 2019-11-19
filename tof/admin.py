@@ -2,10 +2,13 @@
 # @Author: MaxST
 # @Date:   2019-10-28 12:30:45
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-11-19 13:34:21
+# @Last Modified time: 2019-11-19 15:33:47
 import logging
 
 from django.contrib import admin
+from django.contrib.contenttypes.admin import (
+    GenericStackedInline, GenericTabularInline,
+)
 from django.contrib.contenttypes.models import ContentType
 from django.http import JsonResponse
 from django.urls import reverse
@@ -109,3 +112,15 @@ class TranslationAdmin(admin.ModelAdmin):
                 logger.error(e)
                 return JsonResponse({'errors': _('You choose wrong content type')})
         return super()._changeform_view(request, object_id, form_url, extra_context)
+
+
+class TranslationStackedInline(GenericStackedInline):
+    model = Translation
+    extra = 0
+    autocomplete_fields = ('field', 'lang')
+
+
+class TranslationTabularInline(GenericTabularInline):
+    model = Translation
+    extra = 0
+    autocomplete_fields = ('field', 'lang')
