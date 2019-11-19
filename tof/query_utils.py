@@ -2,7 +2,7 @@
 # @Author: MaxST
 # @Date:   2019-10-30 14:19:55
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-11-18 14:23:07
+# @Last Modified time: 2019-11-19 12:44:48
 from django.utils.translation import get_language
 
 from .settings import DEFAULT_LANGUAGE, FALLBACK_LANGUAGES, SITE_ID
@@ -71,7 +71,7 @@ class DeferredTranslatedAttribute:
 
     def __delete__(self, instance):
         del instance._all_translations[self.get_field_name()]
-        del instance._field_tof[self.get_field_name()]
+        del type(instance)._meta._field_tof[self.get_field_name()]
 
     def get_field_name(self, ct=None):
         return self.model_field.attname

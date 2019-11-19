@@ -2,7 +2,9 @@
 # @Author: MaxST
 # @Date:   2019-10-28 12:30:45
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-11-18 18:21:06
+# @Last Modified time: 2019-11-19 13:27:16
+import logging
+
 from django.contrib import admin
 from django.contrib.contenttypes.models import ContentType
 from django.http import JsonResponse
@@ -11,6 +13,9 @@ from django.utils.translation import gettext_lazy as _
 
 from .forms import TranslatableFieldsForm, TranslationsForm
 from .models import Language, TranslatableField, Translation
+
+# Get an instance of a logger
+logger = logging.getLogger('django')
 
 
 @admin.register(ContentType)
@@ -99,6 +104,7 @@ class TranslationAdmin(admin.ModelAdmin):
                     'url': url,
                     'text': str(model.objects.get(pk=id_obj)) if id_obj else '',
                 })
-            except Exception:
+            except Exception as e:
+                logger.error(e)
                 return JsonResponse({'errors': _('You choose wrong content type')})
         return super()._changeform_view(request, object_id, form_url, extra_context)

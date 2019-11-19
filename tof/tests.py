@@ -2,7 +2,8 @@
 # @Author: MaxST
 # @Date:   2019-11-15 19:17:59
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-11-18 15:21:03
+# @Last Modified time: 2019-11-19 13:19:19
+from django.contrib.admin.models import LogEntry
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import Q
 from django.test import TestCase
@@ -18,10 +19,10 @@ from .settings import FALLBACK_LANGUAGES
 
 
 def create_field(name='title', cls=None):
-    ct_wine = ContentType.objects.get_for_model(cls or Wine)
-    fld = TranslatableField.objects.first()
+    ct = ContentType.objects.get_for_model(cls or Wine)
+    fld = TranslatableField.objects.filter(content_type=ct).first()
     if not fld:
-        mixer.blend(TranslatableField, name=name, title=name.title(), content_type=ct_wine)
+        mixer.blend(TranslatableField, name=name, title=name.title(), content_type=ct)
 
 
 def clean_model(cls, attr='title'):
@@ -33,13 +34,21 @@ class TranslatableFieldTestCase(TestCase):
     @classmethod
     def setUpTestData(cls):
         clean_model(Wine)
+        clean_model(LogEntry)
         mixer.blend(Wine, title='Wine 1')
 
     def test_save(self):
         wine1 = Wine.objects.first()
+        log = LogEntry.objects.first()
         self.assertNotIsInstance(wine1, TranslationFieldMixin)
+        self.assertNotIsInstance(log, TranslationFieldMixin)
+        self.assertIsNone(vars(LogEntry._meta).get('_field_tof'))
         create_field()
         self.assertIsInstance(wine1, TranslationFieldMixin)
+        self.assertIsNotNone(vars(Wine._meta).get('_field_tof'))
+        self.assertIsNone(vars(LogEntry._meta).get('_field_tof'))
+        create_field('change_message', LogEntry)
+        self.assertIsNotNone(vars(LogEntry._meta).get('_field_tof'))
 
     def test_delete(self):
         create_field()

@@ -2,7 +2,7 @@
 # @Author: MaxST
 # @Date:   2019-11-17 15:03:06
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-11-18 14:19:28
+# @Last Modified time: 2019-11-19 12:44:25
 from functools import wraps
 
 from django.contrib.contenttypes.models import ContentType
@@ -65,7 +65,7 @@ def expand_q_filters(q, root_cls):
 
 def expand_filter(model_cls, key, value):
     field, sep, lookup = key.partition('__')
-    if field in model_cls._field_tof:
+    if field in model_cls._meta._field_tof:
         from .models import Translation
         ct = ContentType.objects.get_for_model(model_cls)
         query = (Q(field__content_type__id=ct.pk) & Q(field__name=field))  # noqa
