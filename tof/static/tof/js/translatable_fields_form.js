@@ -2,7 +2,7 @@
 * @Author: MaxST
 * @Date:   2019-11-09 13:52:25
 * @Last Modified by:   MaxST
-* @Last Modified time: 2019-11-18 17:44:16
+* @Last Modified time: 2019-11-20 12:10:54
 */
 (function ($) {
   window.generic_view_json = function (fields, text) {
@@ -37,6 +37,12 @@
     $select.html(sel);
     return $('#id_name').djangoAdminSelect2({
       ajax: {
+        data: function (request_data) {
+          data = data.filter(function(item) {
+            if (request_data.term) {return item.text.startsWith(request_data.term)}
+            return true;
+          });
+        },
         processResults: function (get_data, page) {
           return {results: data};
         }
