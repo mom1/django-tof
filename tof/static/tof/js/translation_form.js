@@ -2,9 +2,10 @@
 * @Author: MaxST
 * @Date:   2019-11-09 13:52:25
 * @Last Modified by:   MaxST
-* @Last Modified time: 2019-11-18 17:45:34
+* @Last Modified time: 2019-11-22 13:04:13
 */
 (function ($) {
+  'use strict';
   window.generic_view_json = function (url, text) {
     var $drop = $('#id_object_id');
     var $select = $drop;
@@ -53,12 +54,8 @@
       }
       var esc = encodeURIComponent;
       $.get({
-        url: '?' + Object
-          .keys(params)
-          .map(function (k) {
-            return esc(k) + '=' + esc(params[k]);
-          })
-          .join('&'),
+        url: '',
+        data: params,
         success: function (data, textStatus, jqXHR) {
           if (data.errors) {
             return alert(data.errors)

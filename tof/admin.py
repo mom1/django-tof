@@ -2,7 +2,7 @@
 # @Author: MaxST
 # @Date:   2019-10-28 12:30:45
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-11-19 17:31:26
+# @Last Modified time: 2019-11-22 13:05:59
 import logging
 
 from django.contrib import admin
@@ -41,7 +41,7 @@ class LanguageAdmin(admin.ModelAdmin):
 @admin.register(TranslatableField)
 class TranslatableFieldsAdmin(admin.ModelAdmin):
     form = TranslatableFieldsForm
-    search_fields = ('name', 'title')
+    search_fields = ('content_type__model', 'title')
     list_display = ('content_type', 'name', 'title')
 
     fieldsets = ((None, {
