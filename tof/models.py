@@ -2,7 +2,7 @@
 # @Author: MaxST
 # @Date:   2019-10-23 17:24:33
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-11-19 15:27:21
+# @Last Modified time: 2019-11-22 20:35:06
 
 from django.contrib.contenttypes.fields import (
     GenericForeignKey, GenericRelation,
@@ -69,7 +69,7 @@ class TranslationFieldMixin(models.Model):
 
     @classmethod
     def _add_deferred_translated_field(cls, field):
-        translator = cls._meta._field_tof[field.name] = DeferredTranslatedAttribute(cls._meta.get_field(field.name), field)
+        translator = cls._meta._field_tof[field.name] = DeferredTranslatedAttribute(field)
         setattr(cls, field.name,
                 property(
                     fget=translator.__get__,
@@ -81,7 +81,7 @@ class TranslationFieldMixin(models.Model):
     @classmethod
     def _del_deferred_translated_field(cls, name):
         try:
-            fld = cls._meta._field_tof[name].model_field
+            fld = cls._meta.get_field(name)
             del cls._meta._field_tof[name]
             delattr(cls, name)
             fld.contribute_to_class(cls, name)

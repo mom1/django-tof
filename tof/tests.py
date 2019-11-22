@@ -2,7 +2,7 @@
 # @Author: MaxST
 # @Date:   2019-11-15 19:17:59
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-11-19 17:15:56
+# @Last Modified time: 2019-11-22 18:17:27
 from django.contrib.admin.models import LogEntry
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import Q
@@ -124,7 +124,7 @@ class TranslationFieldMixinTestCase(TestCase):
                 wine.save()
         with self.assertNumQueries(3):
             for wine in Wine.objects.all():
-                self.assertIsNotNone(wine.title)
+                self.assertIsNotNone(wine.title.en)
 
 
 class DeferredTranslatedAttributeTestCase(TestCase):

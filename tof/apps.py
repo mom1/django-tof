@@ -2,7 +2,7 @@
 # @Author: MaxST
 # @Date:   2019-10-29 10:05:01
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-11-19 14:34:08
+# @Last Modified time: 2019-11-22 14:24:05
 import sys
 
 from django.apps import AppConfig
@@ -24,7 +24,7 @@ class TofConfig(AppConfig):
         if connection.introspection.table_names():
             for arg in ('migrate', 'makemigrations'):
                 if arg in sys.argv:
-                    return
+                    return  # pragma: no cover
             for field in self.models_module.TranslatableField.objects.all():
                 cls = field.content_type.model_class()
                 self.models_module.prepare_cls_for_translate(cls, field)

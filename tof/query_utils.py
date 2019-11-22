@@ -2,7 +2,7 @@
 # @Author: MaxST
 # @Date:   2019-10-30 14:19:55
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-11-19 12:44:48
+# @Last Modified time: 2019-11-22 20:35:35
 from django.utils.translation import get_language
 
 from .settings import DEFAULT_LANGUAGE, FALLBACK_LANGUAGES, SITE_ID
@@ -52,33 +52,35 @@ class DeferredTranslatedAttribute:
             model_field: Поле модели
             obj_field: Объект поля. тип TranslatableField
     """
-    __slots__ = ('model_field', 'obj_field')
+    __slots__ = ('attname', 'ct', 'field_id')
 
-    def __init__(self, field, obj_field):
-        self.model_field = field
-        self.obj_field = obj_field
+    def __init__(self, obj_field):
+        self.attname = obj_field.name
+        self.field_id = obj_field.id
+        self.ct = obj_field.content_type.pk
 
     def __get__(self, instance):
-        return instance._all_translations.get(self.get_field_name()) or instance._origin_tof.get(self.get_field_name())
+        return instance._all_translations.get(self.attname) or instance._origin_tof.get(self.attname)
 
     def __set__(self, instance, value):
         if getattr(instance, '_end_init', False):
-            attr = self.get_field_name()
+            attr = self.attname
             trans_text = instance._all_translations.setdefault(attr, TranslatableText(instance, attr))
             setattr(trans_text, trans_text.get_lang(), str(value))
         else:
-            instance._origin_tof[self.get_field_name()] = value
+            instance._origin_tof[self.attname] = value
 
     def __delete__(self, instance):
-        del instance._all_translations[self.get_field_name()]
-        del type(instance)._meta._field_tof[self.get_field_name()]
-
-    def get_field_name(self, ct=None):
-        return self.model_field.attname
+        del instance._all_translations[self.attname]  # pragma: no cover
+        del type(instance)._meta._field_tof[self.attname]  # pragma: no cover
 
     def save(self, instance):
-        val = instance._all_translations.get(self.get_field_name())
+        val = instance._all_translations.get(self.attname)
         if val:
-            translation, _ = instance._translations.get_or_create(field=self.obj_field, lang_id=val.get_lang())
+            translation, _ = instance._translations.get_or_create(
+                content_type_id=self.ct,
+                field_id=self.field_id,
+                lang_id=val.get_lang(),
+            )
             translation.value = val
             translation.save()
