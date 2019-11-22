@@ -6,7 +6,7 @@ authors = ["MaxST <mstolpasov@gmail.com>"]
 
 [tool.poetry.dependencies]
 python = "^3.6"
-django = "==3.0b1"
+django = "==3.0rc1"
 django-tof = {path = "..", develop = true}
 
 [tool.poetry.dev-dependencies]
