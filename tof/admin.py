@@ -2,11 +2,12 @@
 # @Author: MaxST
 # @Date:   2019-10-28 12:30:45
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-11-19 13:34:21
+# @Last Modified time: 2019-11-22 12:35:42
 import logging
 
 from django.contrib import admin
 from django.contrib.contenttypes.models import ContentType
+from django.db.models import CharField, TextField
 from django.http import JsonResponse
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
@@ -63,7 +64,10 @@ class TranslatableFieldsAdmin(admin.ModelAdmin):
                 model = ct.model_class()
                 return JsonResponse({
                     'pk': ct.pk,
-                    'fields': [f.attname for f in model._meta.get_fields()],
+                    'fields': [
+                        f.attname for f in model._meta.get_fields()
+                        if isinstance(f, (CharField, TextField)) and f.column != 'password'
+                    ],
                 })
             except Exception as e:
                 logger.error(e)
