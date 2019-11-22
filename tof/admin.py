@@ -10,6 +10,7 @@ from django.contrib.contenttypes.admin import (
     GenericInlineModelAdmin, GenericStackedInline, GenericTabularInline,
 )
 from django.contrib.contenttypes.models import ContentType
+from django.db.models import CharField, TextField
 from django.http import JsonResponse
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
@@ -66,7 +67,10 @@ class TranslatableFieldsAdmin(admin.ModelAdmin):
                 model = ct.model_class()
                 return JsonResponse({
                     'pk': ct.pk,
-                    'fields': [f.attname for f in model._meta.get_fields()],
+                    'fields': [
+                        f.attname for f in model._meta.get_fields()
+                        if isinstance(f, (CharField, TextField)) and f.column != 'password'
+                    ],
                 })
             except Exception as e:
                 logger.error(e)
