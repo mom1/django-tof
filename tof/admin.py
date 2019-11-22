@@ -2,7 +2,7 @@
 # @Author: MaxST
 # @Date:   2019-10-28 12:30:45
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-11-22 13:05:59
+# @Last Modified time: 2019-11-22 13:37:22
 import logging
 
 from django.contrib import admin
@@ -10,7 +10,7 @@ from django.contrib.contenttypes.admin import (
     GenericInlineModelAdmin, GenericStackedInline, GenericTabularInline,
 )
 from django.contrib.contenttypes.models import ContentType
-from django.db.models import CharField, TextField
+from django.db.models import CharField, Q, TextField
 from django.http import JsonResponse
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
@@ -25,6 +25,10 @@ logger = logging.getLogger('django')
 @admin.register(ContentType)
 class ContentTypeAdmin(admin.ModelAdmin):
     search_fields = ('app_label', 'model')
+
+    def get_search_results(self, request, queryset, search_term):
+        queryset, use_distinct = super().get_search_results(request, queryset, search_term)
+        return queryset.filter(~Q(app_label='tof')), use_distinct
 
 
 @admin.register(Language)
