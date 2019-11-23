@@ -1,0 +1,6 @@
+# TODO
+
+remove_translation_from_class  # its seems tooooo complicated.
+add_translation_to_class   # its seems tooooo complicated.
+
+Need time check
