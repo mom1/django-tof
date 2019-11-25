@@ -70,10 +70,7 @@ def expand_q_filters(q, root_cls):
 
 def expand_filter(model_cls, key, value):
     field, sep, lookup = key.partition('__')
-    if field in model_cls._meta._field_tof:
-        from .models import Translation
-        ct = ContentType.objects.get_for_model(model_cls)
-        query = (Q(field__content_type__id=ct.pk) & Q(field__name=field))  # noqa
+    if field in model_cls._meta._field_tof.values():
         if DEFAULT_FILTER_LANGUAGE == '__all__':
             pass
         elif DEFAULT_FILTER_LANGUAGE == 'current':
@@ -87,6 +84,6 @@ def expand_filter(model_cls, key, value):
         else:
             query &= Q(lang=get_language())
         query &= Q(**{f'value{sep}{lookup}': value})
-        new_val = Translation.objects.filter(query).values_list('object_id', flat=True)
+        new_val = field.tarnslations.filter(query).values_list('object_id', flat=True)
         return 'id__in', new_val, True
     return key, value, False

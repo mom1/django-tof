@@ -163,20 +163,20 @@ class DeferredTranslatedAttributeTestCase(TestCase):
 
             serch_wine = Wine.objects.filter(title=title_nl).first()
             self.assertEqual(None, serch_wine)
-            from . import decorators
-            decorators.DEFAULT_FILTER_LANGUAGE = '__all__'
+            from .decorators import DEFAULT_FILTER_LANGUAGE
+            DEFAULT_FILTER_LANGUAGE = '__all__'
             serch_wine = Wine.objects.filter(title=title_nl).first()
             self.assertEqual(wine1, serch_wine)
-            decorators.DEFAULT_FILTER_LANGUAGE = 'nl'
+            DEFAULT_FILTER_LANGUAGE = 'nl'
             serch_wine = Wine.objects.filter(title=title_nl).first()
             self.assertEqual(wine1, serch_wine)
-            decorators.DEFAULT_FILTER_LANGUAGE = ('nl', )
+            DEFAULT_FILTER_LANGUAGE = ('nl', )
             serch_wine = Wine.objects.filter(title=title_nl).first()
             self.assertEqual(wine1, serch_wine)
-            decorators.DEFAULT_FILTER_LANGUAGE = {'de': ('nl', )}
+            DEFAULT_FILTER_LANGUAGE = {'de': ('nl', )}
             serch_wine = Wine.objects.filter(title=title_nl).first()
             self.assertEqual(wine1, serch_wine)
-            decorators.DEFAULT_FILTER_LANGUAGE = set()
+            DEFAULT_FILTER_LANGUAGE = set()
             serch_wine = Wine.objects.filter(title=title_de).first()
             self.assertEqual(wine1, serch_wine)
 
