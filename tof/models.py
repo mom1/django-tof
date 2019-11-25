@@ -85,11 +85,11 @@ class TranslatableField(models.Model):
         self.add_translation_to_class()
 
     def delete(self, *args, **kwargs):
-        super().delete(*args, **kwargs)
         self.remove_translation_from_class()
+        super().delete(*args, **kwargs)
 
     def __get__(self, instance, instance_cls):
-        return instance.get_translation(self.name)
+        return instance.get_translation(self.name) if instance else vars(instance_cls).get(self.name)
 
     def __set__(self, instance, value):
         translation = vars(instance)[self.name] = instance.get_translation(self.name)

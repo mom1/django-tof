@@ -14,7 +14,7 @@ class TranslatableText:
         vars(self).update(**kwargs)
 
     def __getattr__(self, attr):
-        if len(attrs) == 2:
+        if len(attr) == 2:
             attrs = vars(self)
             for lang in self.get_fallback_languages(attr):
                 if lang in attrs:  # if attr exists we should return value, dont matter what is it.
@@ -38,7 +38,7 @@ class TranslatableText:
 
     def get_fallback_languages(self, attr):
         for fallback in (FALLBACK_LANGUAGES.get(attr) or (), FALLBACK_LANGUAGES.get(SITE_ID) or (), DEFAULT_LANGUAGE):
-            if isinctance(fallback, (list, tuple))
+            if isinctance(fallback, (list, tuple)):
                 yield from (lang for lang in fallback if lang != attr)
             else:
                 yield fallback

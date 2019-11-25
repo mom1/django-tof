@@ -84,6 +84,6 @@ def expand_filter(model_cls, key, value):
         else:
             query &= Q(lang=get_language())
         query &= Q(**{f'value{sep}{lookup}': value})
-        new_val = field.tarnslations.filter(query).values_list('object_id', flat=True)
+        new_val = field.translations.filter(query).values_list('object_id', flat=True)
         return 'id__in', new_val, True
     return key, value, False
