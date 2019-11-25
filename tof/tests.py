@@ -2,9 +2,10 @@
 # @Author: MaxST
 # @Date:   2019-11-15 19:17:59
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-11-22 18:17:27
+# @Last Modified time: 2019-11-25 15:27:05
 from django.contrib.admin.models import LogEntry
 from django.contrib.contenttypes.models import ContentType
+from django.core.management import call_command
 from django.db.models import Q
 from django.test import TestCase
 from django.utils.translation import override
@@ -206,3 +207,9 @@ class TranslatableTextTestCase(TestCase):
         FALLBACK_LANGUAGES['aa'] = 'nl'
         with override('aa'):
             self.assertEqual(str(val), title_nl)
+
+
+class Benchmark(TestCase):
+
+    def test_benchmark(self):
+        call_command('benchmark')

@@ -2,7 +2,7 @@
 # @Author: MaxST
 # @Date:   2019-10-30 14:19:55
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-11-22 20:35:35
+# @Last Modified time: 2019-11-25 15:27:44
 from django.utils.translation import get_language
 
 from .settings import DEFAULT_LANGUAGE, FALLBACK_LANGUAGES, SITE_ID
@@ -31,6 +31,15 @@ class TranslatableText:
 
     def __html__(self):
         return str(self)
+
+    def __eq__(self, other):
+        return str(self) == str(other)
+
+    def __add__(self, other):
+        return f'{self}{other}'
+
+    def __radd__(self, other):
+        return f'{other}{self}'
 
     @staticmethod
     def get_lang():
