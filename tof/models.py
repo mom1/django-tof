@@ -97,7 +97,7 @@ class TranslatableField(models.Model):
 
     def __delete__(self, instance):
         vars(self).pop(self.name, None)
-        instance._meta._field_tof.pop(self.id, None)  # pragma: no cover
+        instance._meta._field_tof.pop(self.id, None)
 
     def save_translation(self, instance):
         val = instance.get_translation(self.name)
@@ -121,7 +121,7 @@ class TranslatableField(models.Model):
                 del cls.objects
                 trans_mng.contribute_to_class(cls, 'objects')
                 origin.contribute_to_class(cls, 'objects_origin')
-        setattr(cls, cls._meta._field_tof.setdefault(self.id, self).name, self)
+        setattr(cls, cls._meta._field_tof.setdefault(self.id, self), self)
 
     def remove_translation_from_class(self):
         cls = self.content_type.model_class()
