@@ -130,6 +130,7 @@ class TranslatableField(models.Model):
         field = cls._meta.get_field(self.name)
         field.contribute_to_class(cls, self.name)
         if issubclass(cls, TranslationFieldMixin) and not cls._meta._field_tof:
+            delattr(cls._meta, '_field_tof')
             cls.__bases__ = cls.__bases__[1:]  # TODO DONT USE [1:], it can be not first!!!!
             if CHANGE_DEFAULT_MANAGER and isinstance(cls._default_manager, TranslationManager):
                 delattr(cls, cls._default_manager.default_name)
