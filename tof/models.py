@@ -57,7 +57,7 @@ class TranslationFieldMixin(models.Model):
         return attrs
 
     def get_translation(self, name):
-        attrs = self._all_translations if hasattr(self, '_end_init') else vars(self)    
+        attrs = self._all_translations if hasattr(self, '_end_init') else vars(self)
         return attrs.get(name) or TranslatableText()
 
     def save(self, *args, **kwargs):
@@ -89,20 +89,20 @@ class TranslatableField(models.Model):
         self.remove_translation_from_class()
 
     def __get__(self, instance, instance_cls):
-        return instance.get_translation(self.name) 
+        return instance.get_translation(self.name)
 
     def __set__(self, instance, value):
-        translation = vars(instance)[self.name] = instance.get_translation(self.name)  
+        translation = vars(instance)[self.name] = instance.get_translation(self.name)
         setattr(translation, translation.get_lang() if hasattr(instance, '_end_init') else '_origin', str(value))
 
     def __delete__(self, instance):
         vars(self).pop(self.name, None)
-        del type(instance)._meta._field_tof[self.attname]  # pragma: no cover
+        instance._meta._field_tof.pop(self.id, None)  # pragma: no cover
 
     def save_translation(self, instance):
         val = instance.get_translation(self.name)
         if val:
-            translation, _ = self.translations.get_or_create(object_id=instance.pk, lang_id=val.get_lang(),)
+            translation, _ = instance._translations.get_or_create(field=self, lang_id=val.get_lang(),)
             translation.value = val
             translation.save()
 
@@ -124,7 +124,7 @@ class TranslatableField(models.Model):
         setattr(cls, cls._meta._field_tof.setdefault(self.id, self).name, self)
 
     def remove_translation_from_class(self):
-        cls = self.content_type.model_class() 
+        cls = self.content_type.model_class()
         cls._meta._field_tof.pop(self.id)
         delattr(cls, self.name)
         field = cls._meta.get_field(self.name)
