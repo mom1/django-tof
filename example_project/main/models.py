@@ -2,7 +2,7 @@
 # @Author: MaxST
 # @Date:   2019-10-28 20:30:42
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-11-15 15:00:52
+# @Last Modified time: 2019-11-19 14:18:27
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
@@ -20,3 +20,8 @@ class Wine(models.Model):
 
     temperature_from = models.FloatField(_('Temperature_from'), help_text=_('in ° C'), null=True, blank=True)
     temperature_to = models.FloatField(_('Temperature_to'), help_text=_('in ° C'), null=True, blank=True)
+
+
+class Vintage(models.Model):
+    wine = models.ForeignKey(Wine, related_name='vintages', on_delete=models.CASCADE)
+    year = models.IntegerField(_('Year'), default=0)

@@ -2,7 +2,7 @@
 # @Author: MaxST
 # @Date:   2019-11-17 15:02:55
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-11-18 12:52:36
+# @Last Modified time: 2019-11-19 16:40:49
 from django.db import models
 
 from .decorators import tof_filter, tof_prefetch
@@ -34,6 +34,6 @@ class TranslationManager(DecoratedMixIn, models.Manager):
         self.default_name = name or self.default_name
         super().__init__()
 
-    @tof_prefetch
+    @tof_prefetch()
     def get_queryset(self, *args, **kwargs):
         return super().get_queryset(*args, **kwargs)
