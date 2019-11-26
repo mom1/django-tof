@@ -2,7 +2,7 @@
 # @Author: MaxST
 # @Date:   2019-11-17 15:03:06
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-11-26 11:16:27
+# @Last Modified time: 2019-11-26 12:00:34
 from functools import wraps
 
 from django.db.models import Q
@@ -74,8 +74,6 @@ def expand_filter(model_cls, key, value):
                 pass
             elif DEFAULT_FILTER_LANGUAGE == 'current':
                 query &= Q(lang=get_language())
-            elif isinstance(DEFAULT_FILTER_LANGUAGE, str):
-                query &= Q(lang=DEFAULT_FILTER_LANGUAGE)
             elif isinstance(DEFAULT_FILTER_LANGUAGE, (list, tuple)):
                 query &= Q(lang__in=DEFAULT_FILTER_LANGUAGE)
             elif isinstance(DEFAULT_FILTER_LANGUAGE, dict):
