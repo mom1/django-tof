@@ -2,7 +2,7 @@
 # @Author: MaxST
 # @Date:   2019-11-15 19:17:59
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-11-25 15:27:05
+# @Last Modified time: 2019-11-26 11:03:25
 from django.contrib.admin.models import LogEntry
 from django.contrib.contenttypes.models import ContentType
 from django.core.management import call_command
@@ -13,10 +13,10 @@ from main.models import Wine
 from mixer.backend.django import mixer
 
 from .models import (
-    Language, TranslatableField, Translation,
-    TranslationFieldMixin, restore_cls_after_translate,
+    Language, TranslatableField, Translation, TranslationFieldMixin,
 )
 from .settings import FALLBACK_LANGUAGES
+from .utils import TranslatableText
 
 
 def create_field(name='title', cls=None):
@@ -28,7 +28,8 @@ def create_field(name='title', cls=None):
 
 def clean_model(cls, attr='title'):
     if issubclass(cls, TranslationFieldMixin):
-        restore_cls_after_translate(cls, attr, False)
+        for fld in {**cls._meta._field_tof}.values():
+            fld.remove_translation_from_class()
 
 
 class TranslatableFieldTestCase(TestCase):
@@ -108,8 +109,7 @@ class TranslationFieldMixinTestCase(TestCase):
         self.assertEqual(wine1.title.de, title_de)
 
     def test_get(self):
-        self.assertTrue(isinstance(Wine.title, property))
-        Wine._del_deferred_translated_field('jopa')
+        self.assertIsInstance(Wine.title, TranslatableField)
 
     def test_prefetch(self):
         wine1 = Wine.objects.first()
@@ -128,7 +128,7 @@ class TranslationFieldMixinTestCase(TestCase):
                 self.assertIsNotNone(wine.title.en)
 
 
-class DeferredTranslatedAttributeTestCase(TestCase):
+class FilterTestCase(TestCase):
     @classmethod
     def setUpTestData(cls):
         clean_model(Wine)
@@ -199,17 +199,21 @@ class TranslatableTextTestCase(TestCase):
 
         val = wine1.title
 
-        self.assertEqual(str(val), 'Wine 1')
+        self.assertIsInstance(val, TranslatableText)
+        self.assertEqual(val, 'Wine 1')
+        self.assertEqual(val + '1', 'Wine 11')
+        self.assertEqual('1' + val, '1Wine 1')
         self.assertEqual(repr(val), str(val))
         self.assertEqual(str(val), val.__html__())
         self.assertFalse(hasattr(val, 'resolve_expression'))
         self.assertFalse(hasattr(val, 'prepare_database_save'))
-        FALLBACK_LANGUAGES['aa'] = 'nl'
+        FALLBACK_LANGUAGES['aa'] = ('nl',)
         with override('aa'):
             self.assertEqual(str(val), title_nl)
+        del wine1.title
+        self.assertEqual(wine1.title, 'Wine 1')
 
 
 class Benchmark(TestCase):
-
     def test_benchmark(self):
         call_command('benchmark')

@@ -2,8 +2,9 @@
 # @Author: MaxST
 # @Date:   2019-10-29 17:39:13
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-11-15 12:18:20
+# @Last Modified time: 2019-11-26 11:02:22
 from django.conf import settings
+from django.core.exceptions import ImproperlyConfigured
 
 DEFAULT_LANGUAGE = getattr(settings, 'DEFAULT_LANGUAGE', 'en') or 'en'
 
@@ -17,6 +18,13 @@ FALLBACK_LANGUAGES = {
 }
 
 FALLBACK_LANGUAGES = getattr(settings, 'FALLBACK_LANGUAGES', FALLBACK_LANGUAGES)
+
+if not isinstance(FALLBACK_LANGUAGES, dict):
+    raise ImproperlyConfigured('FALLBACK_LANGUAGES is not dict')
+
+for item in FALLBACK_LANGUAGES.values():
+    if not isinstance(item, (list, tuple)):
+        raise ImproperlyConfigured('FALLBACK_LANGUAGES`s values must list ot tuple')
 
 # can be '__all__', 'current', ['en', 'de'], {'en', ('en', 'de', 'ru')}
 DEFAULT_FILTER_LANGUAGE = getattr(settings, 'DEFAULT_FILTER_LANGUAGE', 'current')
