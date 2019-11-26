@@ -2,7 +2,7 @@
 # @Author: MaxST
 # @Date:   2019-10-23 17:24:33
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-11-26 11:21:51
+# @Last Modified time: 2019-11-26 12:18:44
 
 from django.contrib.contenttypes.fields import (
     GenericForeignKey, GenericRelation,
@@ -109,7 +109,7 @@ class TranslatableField(models.Model):
 
     def __set__(self, instance, value):
         translation = vars(instance)[self.name] = instance.get_translation(self.name)
-        setattr(translation, translation.get_lang() if hasattr(instance, '_end_init') else '_origin', str(value))
+        setattr(translation, translation.get_lang() if instance._end_init else '_origin', str(value))
 
     def __delete__(self, instance):
         vars(self).pop(self.name, None)

@@ -2,7 +2,7 @@
 # @Author: MaxST
 # @Date:   2019-11-15 19:17:59
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-11-26 11:03:25
+# @Last Modified time: 2019-11-26 12:24:56
 from django.contrib.admin.models import LogEntry
 from django.contrib.contenttypes.models import ContentType
 from django.core.management import call_command
@@ -87,7 +87,6 @@ class TranslationTestCase(TestCase):
 
         trans = mixer.blend(Translation, content_object=wine1, field=fld, lang=lang_en, value=new_title)
         str_make = f'{wine1}.{fld.name}.{lang_en} = "{new_title}"'
-
         self.assertEqual(str(trans), str_make)
 
 
@@ -156,14 +155,14 @@ class FilterTestCase(TestCase):
             serch_wine = Wine.objects.filter(title=title_de).first()
             self.assertEqual(title_de, str(serch_wine.title))
             serch_wine = Wine.objects.exclude(title=title_de).first()
-            self.assertEqual(None, serch_wine)
+            self.assertIsNone(serch_wine)
             serch_wine = Wine.objects.get(title=title_de)
             self.assertEqual(title_de, str(serch_wine.title))
             serch_wine = Wine.objects.filter(Q(title=title_de)).first()
             self.assertEqual(title_de, str(serch_wine.title))
 
             serch_wine = Wine.objects.filter(title=title_nl).first()
-            self.assertEqual(None, serch_wine)
+            self.assertIsNone(serch_wine)
             from . import decorators
             decorators.DEFAULT_FILTER_LANGUAGE = '__all__'
             serch_wine = Wine.objects.filter(title=title_nl).first()
