@@ -26,5 +26,4 @@ class TofConfig(AppConfig):
                 if arg in sys.argv:
                     return  # pragma: no cover
             for field in self.models_module.TranslatableField.objects.all():
-                cls = field.content_type.model_class()
-                self.models_module.prepare_cls_for_translate(cls, field)
+                field.add_translation_to_class()
