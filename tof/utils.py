@@ -2,17 +2,13 @@
 # @Author: MaxST
 # @Date:   2019-10-30 14:19:55
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-11-26 11:09:43
+# @Last Modified time: 2019-11-26 13:25:41
 from django.utils.translation import get_language
 
 from .settings import DEFAULT_LANGUAGE, FALLBACK_LANGUAGES, SITE_ID
 
 
 class TranslatableText:
-    def __init__(self, **kwargs):
-        super().__init__()
-        vars(self).update(**kwargs)
-
     def __getattr__(self, attr):
         if len(attr) == 2:
             attrs = vars(self)

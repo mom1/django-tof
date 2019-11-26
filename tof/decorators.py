@@ -2,7 +2,7 @@
 # @Author: MaxST
 # @Date:   2019-11-17 15:03:06
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-11-26 12:13:11
+# @Last Modified time: 2019-11-26 12:41:29
 from functools import wraps
 
 from django.db.models import Q
@@ -15,7 +15,7 @@ def tof_prefetch(*wrapper_args):
     def _tof_prefetch(func):
         @wraps(func)
         def wrapper(*args, **kwargs):
-            entrys = [f'{i}___translations__field' for i in wrapper_args] if wrapper_args else ['_translations__field']
+            entrys = [f'{i}___translations' for i in wrapper_args] if wrapper_args else ['_translations']
             return func(*args, **kwargs).prefetch_related(*entrys)
 
         return wrapper

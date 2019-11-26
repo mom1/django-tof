@@ -2,7 +2,7 @@
 # @Author: MaxST
 # @Date:   2019-11-15 19:17:59
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-11-26 12:24:56
+# @Last Modified time: 2019-11-26 12:50:26
 from django.contrib.admin.models import LogEntry
 from django.contrib.contenttypes.models import ContentType
 from django.core.management import call_command
@@ -114,7 +114,7 @@ class TranslationFieldMixinTestCase(TestCase):
         wine1 = Wine.objects.first()
         wine1.title = f'{wine1.title}'
         wine1.save()
-        with self.assertNumQueries(3):
+        with self.assertNumQueries(2):
             for wine in Wine.objects.all():
                 self.assertIsNotNone(wine.title)
         mixer.cycle(5).blend(Wine, title=mixer.sequence('Wine {0}'))
@@ -122,7 +122,7 @@ class TranslationFieldMixinTestCase(TestCase):
             for wine in Wine.objects.all():
                 wine.title = f'{wine.title} en'
                 wine.save()
-        with self.assertNumQueries(3):
+        with self.assertNumQueries(2):
             for wine in Wine.objects.all():
                 self.assertIsNotNone(wine.title.en)
 
