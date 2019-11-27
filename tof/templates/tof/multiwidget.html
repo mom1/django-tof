@@ -1,0 +1,23 @@
+{% spaceless %}
+  <div class="tabbed-area">
+    {% for widget in widget.subwidgets %}
+      {% if widget.attrs.lang %}
+        <input class="itab" id="{{ widget.attrs.lang }}_{{ widget.attrs.id }}" type="radio" name="tabs" {% if forloop.counter0 == active_tab|default:0 %} checked {% endif %}/>
+        <label class="ltab" for="{{ widget.attrs.lang }}_{{ widget.attrs.id }}">
+          {{ widget.attrs.lang }}
+        </label>
+        <div class="tab">
+      {% endif %}
+      {% include widget.template_name %}
+      {% if widget.attrs.lang %}
+        </div>
+      {% endif %}
+    {% endfor %}
+    {% if widget.subwidgets.0.attrs.lang %}
+      <input class="itab" id="add_{{ widget.attrs.id }}" type="radio" name="tabs"/>
+      <label class="ltab" for="add_{{ widget.attrs.id }}" onclick="alert('Add new lang'); return false;">
+        +
+      </label>
+    {% endif %}
+  </div>
+{% endspaceless %}

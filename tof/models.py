@@ -2,7 +2,7 @@
 # @Author: MaxST
 # @Date:   2019-10-23 17:24:33
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-11-26 12:18:44
+# @Last Modified time: 2019-11-27 12:08:34
 
 from django.contrib.contenttypes.fields import (
     GenericForeignKey, GenericRelation,
@@ -108,8 +108,11 @@ class TranslatableField(models.Model):
         return instance.get_translation(self.name) if instance else vars(instance_cls).get(self.name)
 
     def __set__(self, instance, value):
-        translation = vars(instance)[self.name] = instance.get_translation(self.name)
-        setattr(translation, translation.get_lang() if instance._end_init else '_origin', str(value))
+        if isinstance(value, TranslatableText):
+            vars(instance)[self.name] = value
+        else:
+            translation = vars(instance)[self.name] = instance.get_translation(self.name)
+            setattr(translation, translation.get_lang() if instance._end_init else '_origin', str(value))
 
     def __delete__(self, instance):
         vars(self).pop(self.name, None)
@@ -118,9 +121,11 @@ class TranslatableField(models.Model):
     def save_translation(self, instance):
         val = instance.get_translation(self.name)
         if val:
-            translation, _ = instance._translations.get_or_create(field=self, lang_id=val.get_lang())
-            translation.value = val
-            translation.save()
+            for lang, value in vars(val).items():
+                if lang != '_origin':
+                    translation, _ = instance._translations.get_or_create(field=self, lang_id=lang)
+                    translation.value = value
+                    translation.save()
 
     def add_translation_to_class(self, trans_mng=None):
         cls = self.content_type.model_class()
