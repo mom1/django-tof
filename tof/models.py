@@ -2,7 +2,7 @@
 # @Author: MaxST
 # @Date:   2019-10-23 17:24:33
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-11-27 12:08:34
+# @Last Modified time: 2019-11-27 15:57:32
 
 from django.contrib.contenttypes.fields import (
     GenericForeignKey, GenericRelation,
@@ -54,7 +54,6 @@ class TranslationFieldMixin(models.Model):
     _translations = GenericRelation(Translation, verbose_name=_('Translation'))
 
     def __init__(self, *args, **kwargs):
-        self._end_init = False
         super().__init__(*args, **kwargs)
         self._end_init = True
 
@@ -68,7 +67,9 @@ class TranslationFieldMixin(models.Model):
         return attrs
 
     def get_translation(self, name):
-        attrs = self._all_translations if self._end_init else vars(self)
+        attrs = vars(self)
+        if '_end_init' in attrs:
+            attrs = self._all_translations
         return attrs.get(name) or TranslatableText()
 
     def save(self, *args, **kwargs):
@@ -112,7 +113,7 @@ class TranslatableField(models.Model):
             vars(instance)[self.name] = value
         else:
             translation = vars(instance)[self.name] = instance.get_translation(self.name)
-            setattr(translation, translation.get_lang() if instance._end_init else '_origin', str(value))
+            setattr(translation, translation.get_lang() if '_end_init' in vars(instance) else '_origin', str(value))
 
     def __delete__(self, instance):
         vars(self).pop(self.name, None)

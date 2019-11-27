@@ -2,8 +2,9 @@
 # @Author: MaxST
 # @Date:   2019-11-09 13:47:17
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-11-27 13:08:19
+# @Last Modified time: 2019-11-27 19:36:03
 from django import forms
+from django.utils.translation import get_language
 
 from .utils import TranslatableText
 
@@ -20,13 +21,14 @@ class TranslatableFieldForm(forms.ModelForm):
 
 class TranslatableFieldWidget(forms.MultiWidget):
     template_name = 'tof/multiwidget.html'
+    input_type = 'text'
 
     def __init__(self, attrs=None):
         self.def_lang = ''
         super().__init__((forms.TextInput(attrs=attrs), ))
 
     def get_context(self, name, value, attrs):
-        context = super().get_context(name, value, attrs)
+        context = super(forms.MultiWidget, self).get_context(name, value, attrs)
         if self.is_localized:
             for widget in self.widgets:
                 widget.is_localized = self.is_localized
@@ -36,7 +38,7 @@ class TranslatableFieldWidget(forms.MultiWidget):
             value = self.decompress(value)
 
         final_attrs = context['widget']['attrs']
-        input_type = final_attrs.pop('type', None)
+        input_type = final_attrs.pop('type', self.input_type)
         id_ = final_attrs.get('id')
         subwidgets = []
         for i, widget in enumerate(self.widgets):
@@ -59,7 +61,8 @@ class TranslatableFieldWidget(forms.MultiWidget):
 
     def decompress(self, value):
         if value and isinstance(value, TranslatableText):
-            return [(k, v) for k, v in vars(value).items() if k != '_origin']
+            response = [(k, v) for k, v in vars(value).items() if k != '_origin']
+            return response or [(get_language(), value._origin)]
         return [(None, value)]
 
     def render(self, name, value, attrs=None, renderer=None):
@@ -68,24 +71,30 @@ class TranslatableFieldWidget(forms.MultiWidget):
             attrs_custom = {**widget.attrs, **(attrs or {})}
             for key in vars(value).keys():
                 if key != '_origin':
-                    if not self.widgets:
-                        self.def_lang = key
                     attrs_custom['lang'] = key
                     self.widgets.append(forms.TextInput(attrs=attrs_custom))
+        if not self.widgets:
+            self.widgets.append(forms.TextInput(attrs=attrs))
         return super().render(name, value, attrs, renderer)
 
     def value_from_datadict(self, data, files, name):
-        i, response = 0, []
-        for key, val in data.items():
-            chunk_name = f'{name}_{i}'
-            if key == chunk_name:
-                response.append((None, val))
-                i += 1
-            elif key.startswith(chunk_name):
-                *_, lang = key.rpartition('_')
-                response.append((lang, val))
-                i += 1
+        response = getattr(self, '_datadict', self)
+        if response is self:
+            i, response = 0, []
+            for key, val in data.items():
+                chunk_name = f'{name}_{i}'
+                if key == chunk_name:
+                    response.append((None, val))
+                    i += 1
+                elif key.startswith(chunk_name):
+                    *_, lang = key.rpartition('_')
+                    response.append((lang, val))
+                    i += 1
+            self._datadict = response
         return response
+
+    def value_omitted_from_data(self, data, files, name):
+        return bool(self.value_from_datadict(data, files, name))
 
     @property
     def media(self):

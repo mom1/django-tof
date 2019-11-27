@@ -2,9 +2,10 @@
 # @Author: MaxST
 # @Date:   2019-11-26 19:55:31
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-11-27 12:04:41
+# @Last Modified time: 2019-11-27 19:22:20
 from django.core.exceptions import ValidationError
 from django.forms.fields import CharField, MultiValueField
+from django.utils.translation import get_language
 
 from .forms import TranslatableFieldHiddenWidget, TranslatableFieldWidget
 from .utils import TranslatableText
@@ -18,7 +19,9 @@ class TranslatableFieldFormField(MultiValueField):
         super().__init__((CharField(*args, **kwargs), ))
 
     def compress(self, data_list):
-        return TranslatableText(**{key if key else '_origin': val for key, val in data_list})
+        trans = TranslatableText()
+        vars(trans).update({key if key else get_language(): val for key, val in data_list})
+        return trans
 
     def clean(self, value):
         clean_data = []
