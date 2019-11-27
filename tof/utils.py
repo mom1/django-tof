@@ -2,13 +2,19 @@
 # @Author: MaxST
 # @Date:   2019-10-30 14:19:55
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-11-26 13:25:41
+# @Last Modified time: 2019-11-27 13:20:38
+from django.utils.html import html_safe
 from django.utils.translation import get_language
 
 from .settings import DEFAULT_LANGUAGE, FALLBACK_LANGUAGES, SITE_ID
 
 
+@html_safe
 class TranslatableText:
+    def __init__(self, **kwargs):
+        super().__init__()
+        vars(self).update(**kwargs)
+
     def __getattr__(self, attr):
         if len(attr) == 2:
             attrs = vars(self)
@@ -18,13 +24,13 @@ class TranslatableText:
             return attrs.get('_origin') or ''
         raise AttributeError(attr)
 
+    def __getitem__(self, key):
+        return str(self)[key]
+
     def __str__(self):
         return getattr(self, self.get_lang(), '')
 
     def __repr__(self):
-        return str(self)
-
-    def __html__(self):
         return str(self)
 
     def __eq__(self, other):

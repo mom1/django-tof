@@ -2,7 +2,7 @@
 # @Author: MaxST
 # @Date:   2019-10-28 12:30:45
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-11-22 13:37:22
+# @Last Modified time: 2019-11-26 13:43:57
 import logging
 
 from django.contrib import admin
@@ -15,7 +15,7 @@ from django.http import JsonResponse
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 
-from .forms import TranslatableFieldsForm, TranslationsForm
+from .forms import TranslatableFieldForm, TranslationsForm
 from .models import Language, TranslatableField, Translation
 
 # Get an instance of a logger
@@ -44,7 +44,7 @@ class LanguageAdmin(admin.ModelAdmin):
 
 @admin.register(TranslatableField)
 class TranslatableFieldsAdmin(admin.ModelAdmin):
-    form = TranslatableFieldsForm
+    form = TranslatableFieldForm
     search_fields = ('content_type__model', 'title')
     list_display = ('content_type', 'name', 'title')
 

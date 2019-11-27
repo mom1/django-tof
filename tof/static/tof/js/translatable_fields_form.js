@@ -2,7 +2,7 @@
 * @Author: MaxST
 * @Date:   2019-11-09 13:52:25
 * @Last Modified by:   MaxST
-* @Last Modified time: 2019-11-22 13:04:18
+* @Last Modified time: 2019-11-26 15:59:58
 */
 (function ($) {
   'use strict';
@@ -35,17 +35,18 @@
       sel.append('<option value="' + field + '" ' + selected + '>' + field + '</option>');
       data.push({id: field, text: field});
     });
+    var common_data = data;
     $select.html(sel);
     return $('#id_name').djangoAdminSelect2({
       ajax: {
         data: function (request_data) {
-          data = data.filter(function(item) {
+          common_data = data.filter(function(item) {
             if (request_data.term) {return item.text.startsWith(request_data.term)}
             return true;
           });
         },
         processResults: function (get_data, page) {
-          return {results: data};
+          return {results: common_data};
         }
       }
     });
