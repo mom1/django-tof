@@ -2,7 +2,7 @@
 # @Author: MaxST
 # @Date:   2019-11-15 19:17:59
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-11-26 12:50:26
+# @Last Modified time: 2019-11-27 19:48:43
 from django.contrib.admin.models import LogEntry
 from django.contrib.contenttypes.models import ContentType
 from django.core.management import call_command
@@ -202,7 +202,7 @@ class TranslatableTextTestCase(TestCase):
         self.assertEqual(val, 'Wine 1')
         self.assertEqual(val + '1', 'Wine 11')
         self.assertEqual('1' + val, '1Wine 1')
-        self.assertEqual(repr(val), str(val))
+        self.assertEqual(repr(val), f"'{val}'")
         self.assertEqual(str(val), val.__html__())
         self.assertFalse(hasattr(val, 'resolve_expression'))
         self.assertFalse(hasattr(val, 'prepare_database_save'))
