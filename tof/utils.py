@@ -2,7 +2,7 @@
 # @Author: MaxST
 # @Date:   2019-10-30 14:19:55
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-11-27 19:36:51
+# @Last Modified time: 2019-11-28 16:54:54
 from django.utils.html import html_safe
 from django.utils.translation import get_language
 
@@ -39,7 +39,7 @@ class TranslatableText(str):
         return f'{other}{self}'
 
     def __bool__(self):
-        return bool(str(self))
+        return bool(vars(self))
 
     @staticmethod
     def get_lang():

@@ -2,7 +2,7 @@
 # @Author: MaxST
 # @Date:   2019-11-09 13:47:17
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-11-27 19:36:03
+# @Last Modified time: 2019-11-28 17:28:15
 from django import forms
 from django.utils.translation import get_language
 
@@ -51,10 +51,10 @@ class TranslatableFieldWidget(forms.MultiWidget):
                 widget_lang = None
             if id_:
                 widget_attrs = final_attrs.copy()
-                widget_attrs['id'] = f'{id_}_{i}{widget_lang and f"_{widget_lang}" or ""}'
+                widget_attrs['id'] = f'{id_}{widget_lang and f"_{widget_lang}" or ""}'
             else:
                 widget_attrs = final_attrs
-            widget_name = f'{name}_{i}{widget_lang and f"_{widget_lang}"  or ""}'
+            widget_name = f'{name}{widget_lang and f"_{widget_lang}"  or ""}'
             subwidgets.append(widget.get_context(widget_name, widget_value, widget_attrs)['widget'])
         context['widget']['subwidgets'] = subwidgets
         return context
@@ -74,22 +74,18 @@ class TranslatableFieldWidget(forms.MultiWidget):
                     attrs_custom['lang'] = key
                     self.widgets.append(forms.TextInput(attrs=attrs_custom))
         if not self.widgets:
-            self.widgets.append(forms.TextInput(attrs=attrs))
+            self.widgets.append(forms.TextInput(attrs={**attrs, 'lang': get_language()}))
         return super().render(name, value, attrs, renderer)
 
     def value_from_datadict(self, data, files, name):
         response = getattr(self, '_datadict', self)
         if response is self:
-            i, response = 0, []
+            response = []
+            chunk_name = f'{name}_'
             for key, val in data.items():
-                chunk_name = f'{name}_{i}'
-                if key == chunk_name:
-                    response.append((None, val))
-                    i += 1
-                elif key.startswith(chunk_name):
+                if key.startswith(chunk_name):
                     *_, lang = key.rpartition('_')
                     response.append((lang, val))
-                    i += 1
             self._datadict = response
         return response
 

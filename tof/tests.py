@@ -2,7 +2,7 @@
 # @Author: MaxST
 # @Date:   2019-11-15 19:17:59
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-11-27 19:48:43
+# @Last Modified time: 2019-11-28 17:26:20
 from django.contrib.admin.models import LogEntry
 from django.contrib.contenttypes.models import ContentType
 from django.core.management import call_command
@@ -100,12 +100,21 @@ class TranslationFieldMixinTestCase(TestCase):
     def test_save(self):
         wine1 = Wine.objects.first()
         title_de = 'Wine 1 de'
+        title_en = 'Wine 1 en'
+        title_nl = 'Wine 1 en'
         with override('de'):
             wine1.title = title_de
             wine1.save()
 
         wine1 = Wine.objects.first()
         self.assertEqual(wine1.title.de, title_de)
+        value = TranslatableText()
+        vars(value).update({'en': title_en, 'nl': title_nl})
+        wine1.title = value
+        wine1.save()
+        wine1 = Wine.objects.first()
+        self.assertEqual(wine1.title.en, title_en)
+        self.assertEqual(wine1.title.nl, title_nl)
 
     def test_get(self):
         self.assertIsInstance(Wine.title, TranslatableField)
@@ -200,6 +209,7 @@ class TranslatableTextTestCase(TestCase):
 
         self.assertIsInstance(val, TranslatableText)
         self.assertEqual(val, 'Wine 1')
+        self.assertEqual(val[0], 'W')
         self.assertEqual(val + '1', 'Wine 11')
         self.assertEqual('1' + val, '1Wine 1')
         self.assertEqual(repr(val), f"'{val}'")
