@@ -69,7 +69,7 @@ def expand_filter(model_cls, key, value):
     field_name, sep, lookup = key.partition('__')
     for field in model_cls._meta._field_tof.values():
         if field.name == field_name:
-            query = Q()
+            query = Q(**{f'value{sep}{lookup}': value})
             if DEFAULT_FILTER_LANGUAGE == '__all__':
                 pass
             elif DEFAULT_FILTER_LANGUAGE == 'current':
@@ -82,7 +82,6 @@ def expand_filter(model_cls, key, value):
                 query &= Q(lang__in=DEFAULT_FILTER_LANGUAGE.get(get_language(), (DEFAULT_LANGUAGE, )))
             else:
                 query &= Q(lang=get_language())
-            query &= Q(**{f'value{sep}{lookup}': value})
             new_val = field.translations.filter(query).values_list('object_id', flat=True)
             return 'id__in', new_val, True
     return key, value, False
