@@ -2,10 +2,11 @@
 # @Author: MaxST
 # @Date:   2019-11-09 13:47:17
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-11-28 17:28:15
+# @Last Modified time: 2019-11-28 18:36:59
 from django import forms
 from django.utils.translation import get_language
 
+from .models import TranslationFieldMixin
 from .utils import TranslatableText
 
 
@@ -25,7 +26,7 @@ class TranslatableFieldWidget(forms.MultiWidget):
 
     def __init__(self, attrs=None):
         self.def_lang = ''
-        super().__init__((forms.TextInput(attrs=attrs), ))
+        super().__init__((forms.TextInput(attrs={**(attrs or {}), 'lang': get_language()}), ))
 
     def get_context(self, name, value, attrs):
         context = super(forms.MultiWidget, self).get_context(name, value, attrs)
@@ -63,7 +64,7 @@ class TranslatableFieldWidget(forms.MultiWidget):
         if value and isinstance(value, TranslatableText):
             response = [(k, v) for k, v in vars(value).items() if k != '_origin']
             return response or [(get_language(), value._origin)]
-        return [(None, value)]
+        return [(get_language(), value)]
 
     def render(self, name, value, attrs=None, renderer=None):
         if isinstance(value, TranslatableText):
@@ -104,3 +105,12 @@ class TranslatableFieldHiddenWidget(TranslatableFieldWidget):
         super().__init__(attrs)
         for widget in self.widgets:
             widget.input_type = 'hidden'
+
+
+class TranslationFieldModelForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if issubclass(self._meta.model, TranslationFieldMixin):
+            from .fields import TranslatableFieldFormField
+            for field in self._meta.model._meta._field_tof.values():
+                self.fields[field.name] = TranslatableFieldFormField(self.fields[field.name])

@@ -2,7 +2,7 @@
 # @Author: MaxST
 # @Date:   2019-11-26 19:55:31
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-11-27 19:22:20
+# @Last Modified time: 2019-11-28 18:37:16
 from django.core.exceptions import ValidationError
 from django.forms.fields import CharField, MultiValueField
 from django.utils.translation import get_language
@@ -15,8 +15,8 @@ class TranslatableFieldFormField(MultiValueField):
     widget = TranslatableFieldWidget
     hidden_widget = TranslatableFieldHiddenWidget
 
-    def __init__(self, *args, **kwargs):
-        super().__init__((CharField(*args, **kwargs), ))
+    def __init__(self, field=None, *args, **kwargs):
+        super().__init__((field or CharField(*args, **kwargs), ))
 
     def compress(self, data_list):
         trans = TranslatableText()
