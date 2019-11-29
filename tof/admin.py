@@ -2,10 +2,11 @@
 # @Author: MaxST
 # @Date:   2019-10-28 12:30:45
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-11-26 13:43:57
+# @Last Modified time: 2019-11-29 13:20:55
 import logging
 
 from django.contrib import admin
+from django.contrib.admin.options import IS_POPUP_VAR
 from django.contrib.contenttypes.admin import (
     GenericInlineModelAdmin, GenericStackedInline, GenericTabularInline,
 )
@@ -39,7 +40,8 @@ class LanguageAdmin(admin.ModelAdmin):
 
     def get_search_results(self, request, queryset, search_term):
         queryset, use_distinct = super().get_search_results(request, queryset, search_term)
-        return queryset.filter(is_active=True), use_distinct
+        query = Q(is_active=True) if IS_POPUP_VAR in request.GET or 'autocomplete' in request.path else Q()
+        return queryset.filter(query), use_distinct
 
 
 @admin.register(TranslatableField)

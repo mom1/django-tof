@@ -2,7 +2,7 @@
 # @Author: MaxST
 # @Date:   2019-11-09 13:47:17
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-11-28 18:36:59
+# @Last Modified time: 2019-11-29 12:28:43
 from django import forms
 from django.utils.translation import get_language
 
@@ -24,9 +24,9 @@ class TranslatableFieldWidget(forms.MultiWidget):
     template_name = 'tof/multiwidget.html'
     input_type = 'text'
 
-    def __init__(self, attrs=None):
-        self.def_lang = ''
-        super().__init__((forms.TextInput(attrs={**(attrs or {}), 'lang': get_language()}), ))
+    def __init__(self, widget=None, attrs=None):
+        widget = widget or forms.TextInput(attrs={**(attrs or {}), 'lang': get_language()})
+        super().__init__((widget, ))
 
     def get_context(self, name, value, attrs):
         context = super(forms.MultiWidget, self).get_context(name, value, attrs)
@@ -67,15 +67,15 @@ class TranslatableFieldWidget(forms.MultiWidget):
         return [(get_language(), value)]
 
     def render(self, name, value, attrs=None, renderer=None):
+        widget = self.widgets.pop(0)
         if isinstance(value, TranslatableText):
-            widget = self.widgets.pop(0)
             attrs_custom = {**widget.attrs, **(attrs or {})}
             for key in vars(value).keys():
                 if key != '_origin':
                     attrs_custom['lang'] = key
-                    self.widgets.append(forms.TextInput(attrs=attrs_custom))
+                    self.widgets.append(type(widget)(attrs=attrs_custom))
         if not self.widgets:
-            self.widgets.append(forms.TextInput(attrs={**attrs, 'lang': get_language()}))
+            self.widgets.append(widget)
         return super().render(name, value, attrs, renderer)
 
     def value_from_datadict(self, data, files, name):
