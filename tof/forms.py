@@ -2,7 +2,7 @@
 # @Author: MaxST
 # @Date:   2019-11-09 13:47:17
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-11-29 12:28:43
+# @Last Modified time: 2019-11-29 14:04:44
 from django import forms
 from django.utils.translation import get_language
 
@@ -108,9 +108,12 @@ class TranslatableFieldHiddenWidget(TranslatableFieldWidget):
 
 
 class TranslationFieldModelForm(forms.ModelForm):
+    only_current_lang = ()
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         if issubclass(self._meta.model, TranslationFieldMixin):
             from .fields import TranslatableFieldFormField
             for field in self._meta.model._meta._field_tof.values():
-                self.fields[field.name] = TranslatableFieldFormField(self.fields[field.name])
+                if field.name not in self.only_current_lang:
+                    self.fields[field.name] = TranslatableFieldFormField(self.fields[field.name])
