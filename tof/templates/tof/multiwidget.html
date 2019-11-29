@@ -1,9 +1,10 @@
 {% load i18n static %}
 {% spaceless %}
+  {% get_current_language as LANGUAGE_CODE %}
   {% with widget.attrs.id as common_id %}
   <div class="tabbed-area _{{ common_id }}">
     {% for widget in widget.subwidgets %}
-      <input class="itab" id="{{ widget.attrs.lang }}_{{ widget.attrs.id }}" type="radio" name="{{ common_id }}" {% if forloop.counter0 == active_tab|default:0 %} checked {% endif %}/>
+      <input class="itab" id="{{ widget.attrs.lang }}_{{ widget.attrs.id }}" type="radio" name="{{ common_id }}" {% if forloop.counter0 == active_tab|default:0 or LANGUAGE_CODE == widget.attrs.lang %} checked {% endif %}/>
       <label class="ltab" for="{{ widget.attrs.lang }}_{{ widget.attrs.id }}">
         {{ widget.attrs.lang }}
       </label>
