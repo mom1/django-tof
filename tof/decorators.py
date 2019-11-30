@@ -2,7 +2,7 @@
 # @Author: MaxST
 # @Date:   2019-11-17 15:03:06
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-11-26 12:41:29
+# @Last Modified time: 2019-12-01 00:39:55
 from functools import wraps
 
 from django.db.models import Q
@@ -24,7 +24,7 @@ def tof_prefetch(*wrapper_args):
 def tof_filter(func):
     @wraps(func)
     def wrapper(self, *args, **kwargs):
-        tof_fields = getattr(getattr(self.model._meta, '_field_tof', None), '_by_name', {})
+        tof_fields = getattr(self.model._meta, '_field_tof', {})
         new_args, new_kwargs = args, kwargs
         if tof_fields:
             new_args = []

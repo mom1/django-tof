@@ -2,10 +2,10 @@
 # @Author: MaxST
 # @Date:   2019-10-30 14:19:55
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-11-28 16:54:54
+# @Last Modified time: 2019-12-01 01:18:21
 from django.utils.html import html_safe
 from django.utils.translation import get_language
-
+from itertools import zip_longest
 from .settings import DEFAULT_LANGUAGE, FALLBACK_LANGUAGES, SITE_ID
 
 
@@ -50,3 +50,48 @@ class TranslatableText(str):
         for fallback in (FALLBACK_LANGUAGES.get(attr) or (), FALLBACK_LANGUAGES.get(SITE_ID) or ()):
             yield from (lang for lang in fallback if lang != attr)
         yield DEFAULT_LANGUAGE
+
+
+class MultiKeyDict:
+    __slots__ = ('dicts',)
+
+    def __init__(self, **kwargs):
+        self.dicts = []
+
+    def __getitem__(self, key):
+        for d in self.dicts:
+            val = d.get(key)
+            if val:
+                return val
+        raise KeyError
+
+    def __setitem__(self, keys, value):
+        for key, d in zip_longest(keys, self.dicts, fillvalue=None):
+            if key:
+                if d:
+                    d[key] = value
+                else:
+                    self.dicts.append({key: value})
+
+    def setdefault(self, keys, value):
+        self[keys] = value
+        return value
+
+    def delete(self, keys):
+        for key in keys:
+            for i, d in enumerate(self.dicts):
+                d.pop(key, None)
+                if not d:
+                    del self.dicts[i]
+
+    def values(self):
+        return {**self.dicts[0]}.values() if self.dicts else self.dicts
+
+    def get(self, key, def_val=None):
+        try:
+            return self[key]
+        except KeyError:
+            return def_val
+
+    def __bool__(self):
+        return any(self.dicts)
