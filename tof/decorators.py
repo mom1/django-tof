@@ -2,7 +2,7 @@
 # @Author: MaxST
 # @Date:   2019-11-17 15:03:06
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-11-26 11:16:27
+# @Last Modified time: 2019-11-26 12:41:29
 from functools import wraps
 
 from django.db.models import Q
@@ -15,7 +15,7 @@ def tof_prefetch(*wrapper_args):
     def _tof_prefetch(func):
         @wraps(func)
         def wrapper(*args, **kwargs):
-            entrys = [f'{i}___translations__field' for i in wrapper_args] if wrapper_args else ['_translations__field']
+            entrys = [f'{i}___translations' for i in wrapper_args] if wrapper_args else ['_translations']
             return func(*args, **kwargs).prefetch_related(*entrys)
 
         return wrapper
@@ -69,7 +69,7 @@ def expand_filter(model_cls, key, value):
     field_name, sep, lookup = key.partition('__')
     for field in model_cls._meta._field_tof.values():
         if field.name == field_name:
-            query = Q()
+            query = Q(**{f'value{sep}{lookup}': value})
             if DEFAULT_FILTER_LANGUAGE == '__all__':
                 pass
             elif DEFAULT_FILTER_LANGUAGE == 'current':
@@ -82,7 +82,6 @@ def expand_filter(model_cls, key, value):
                 query &= Q(lang__in=DEFAULT_FILTER_LANGUAGE.get(get_language(), (DEFAULT_LANGUAGE, )))
             else:
                 query &= Q(lang=get_language())
-            query &= Q(**{f'value{sep}{lookup}': value})
             new_val = field.translations.filter(query).values_list('object_id', flat=True)
             return 'id__in', new_val, True
     return key, value, False
