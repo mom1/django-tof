@@ -2,7 +2,7 @@
 # @Author: MaxST
 # @Date:   2019-11-15 19:17:59
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-11-30 16:52:23
+# @Last Modified time: 2019-11-30 17:58:20
 from django.contrib import admin
 from django.contrib.admin.models import LogEntry
 from django.contrib.admin.options import IS_POPUP_VAR
@@ -11,6 +11,7 @@ from django.contrib.admin.views.main import SEARCH_VAR
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
+from django.core.exceptions import ValidationError
 from django.core.management import call_command
 from django.db.models import Q
 from django.test import TestCase
@@ -22,6 +23,7 @@ from mixer.backend.django import mixer
 from tof.admin import (
     ContentTypeAdmin, LanguageAdmin, TranslatableFieldAdmin, TranslationAdmin,
 )
+from tof.fields import TranslatableFieldFormField
 from tof.models import (
     Language, TranslatableField, Translation, TranslationFieldMixin,
 )
@@ -333,3 +335,45 @@ class ModelAdminTests(TestCase):
         self.assertEqual(response.json(), {'pk': field.content_type.pk, 'text': str(wine1), 'url': url_auto})
         response = self.client.get(url, data={'field_id': 999, 'id_obj': wine1.pk})
         self.assertTrue('errors' in response.json())
+
+
+class FieldTests(TestCase):
+    def test_field(self):
+        activate('en')
+        fld = TranslatableFieldFormField()
+        data = [['en', 'Wine en'], ['de', 'Wine de']]
+        cmps = fld.clean(data)
+        self.assertEqual(dict(data), vars(cmps))
+        with self.assertRaises(ValidationError):
+            fail_data = data.copy()
+            fail_data[0] = ['en', '']
+            cmps = fld.clean(fail_data)
+
+        fld.required = False
+        self.assertEqual('', fld.clean(None))
+        fld.required = True
+
+        fld.require_all_fields = False
+        cmps = fld.clean(fail_data)
+        self.assertEqual(dict(fail_data), vars(cmps))
+        fld.fields[0].required = True
+        with self.assertRaises(ValidationError):
+            fld.clean(fail_data)
+        fld.fields[0].required = False
+        fld.require_all_fields = True
+
+        with self.assertRaises(ValidationError):
+            cmps = fld.clean(None)
+
+        val = TranslatableText()
+        vars(val).update(dict(data))
+        with self.assertRaises(ValidationError):
+            fld.clean(val)
+        fld.disabled = True
+        fld.required = False
+        self.assertEqual('Wine en', fld.clean(val))
+        fld.required = True
+        fld.disabled = False
+        with self.assertRaises(ValidationError):
+            fail_data[0][1] += '\x00'
+            fld.clean(fail_data)
