@@ -2,7 +2,7 @@
 # @Author: MaxST
 # @Date:   2019-11-15 19:17:59
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-11-30 17:58:20
+# @Last Modified time: 2019-11-30 18:11:38
 from django.contrib import admin
 from django.contrib.admin.models import LogEntry
 from django.contrib.admin.options import IS_POPUP_VAR
@@ -335,6 +335,12 @@ class ModelAdminTests(TestCase):
         self.assertEqual(response.json(), {'pk': field.content_type.pk, 'text': str(wine1), 'url': url_auto})
         response = self.client.get(url, data={'field_id': 999, 'id_obj': wine1.pk})
         self.assertTrue('errors' in response.json())
+        #
+        wine = Wine.objects.first()
+        url = reverse('admin:main_wine_change', args=(wine.pk, ))
+        response = self.client.get(url)
+        self.assertContains(response, 'translatable_fields_widget.js')
+        self.assertContains(response, 'en_id_title_en')
 
 
 class FieldTests(TestCase):
