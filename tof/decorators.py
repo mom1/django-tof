@@ -17,29 +17,27 @@ def tof_prefetch(*wrapper_args):
         def wrapper(*args, **kwargs):
             entrys = [f'{i}___translations' for i in wrapper_args] if wrapper_args else ['_translations']
             return func(*args, **kwargs).prefetch_related(*entrys)
-
         return wrapper
-
     return _tof_prefetch
 
 
 def tof_filter(func):
     @wraps(func)
     def wrapper(self, *args, **kwargs):
-        from .models import TranslationFieldMixin
+        tof_fields = getattr(getattr(self.model._meta, '_field_tof', None), '_by_name', {})
         new_args, new_kwargs = args, kwargs
-        if issubclass(self.model, TranslationFieldMixin):
+        if tof_fields:
             new_args = []
             for arg in args:
                 if isinstance(arg, Q):
                     # modify Q objects (warning: recursion ahead)
-                    arg = expand_q_filters(arg, self.model)
+                    arg = expand_q_filters(arg, tof_fields)
                 new_args.append(arg)
 
             new_kwargs = {}
             for key, value in list(kwargs.items()):
                 # modify kwargs (warning: recursion ahead)
-                new_key, new_value, repl = expand_filter(self.model, key, value)
+                new_key, new_value, repl = expand_filter(tof_fields, key, value)
                 new_kwargs.update({new_key: new_value})
 
         return func(self, *new_args, **new_kwargs)
@@ -47,41 +45,40 @@ def tof_filter(func):
     return wrapper
 
 
-def expand_q_filters(q, root_cls):
+def expand_q_filters(q, tof_fields):
     new_children = []
     for qi in q.children:
         if isinstance(qi, tuple):
             # this child is a leaf node: in Q this is a 2-tuple of:
             # (filter parameter, value)
-            key, value, repl = expand_filter(root_cls, *qi)
+            key, value, repl = expand_filter(tof_fields, *qi)
             query = Q(**{key: value})
             if repl:
                 query |= Q(**{qi[0]: qi[1]})
             new_children.append(query)
         else:
             # this child is another Q node: recursify!
-            new_children.append(expand_q_filters(qi, root_cls))
+            new_children.append(expand_q_filters(qi, tof_fields))
     q.children = new_children
     return q
 
 
-def expand_filter(model_cls, key, value):
+def expand_filter(tof_fields, key, value):
     field_name, sep, lookup = key.partition('__')
-    for field in model_cls._meta._field_tof.values():
-        if field.name == field_name:
-            query = Q(**{f'value{sep}{lookup}': value})
-            if DEFAULT_FILTER_LANGUAGE == '__all__':
-                pass
-            elif DEFAULT_FILTER_LANGUAGE == 'current':
-                query &= Q(lang=get_language())
-            elif isinstance(DEFAULT_FILTER_LANGUAGE, str):
-                query &= Q(lang=DEFAULT_FILTER_LANGUAGE)
-            elif isinstance(DEFAULT_FILTER_LANGUAGE, (list, tuple)):
-                query &= Q(lang__in=DEFAULT_FILTER_LANGUAGE)
-            elif isinstance(DEFAULT_FILTER_LANGUAGE, dict):
-                query &= Q(lang__in=DEFAULT_FILTER_LANGUAGE.get(get_language(), (DEFAULT_LANGUAGE, )))
-            else:
-                query &= Q(lang=get_language())
-            new_val = field.translations.filter(query).values_list('object_id', flat=True)
-            return 'id__in', new_val, True
+    field = tof_fields.get(field_name)
+    if field:
+        query = Q(**{f'value{sep}{lookup}': value})
+        if DEFAULT_FILTER_LANGUAGE == '__all__':
+            pass
+        elif DEFAULT_FILTER_LANGUAGE == 'current':
+            query &= Q(lang=get_language())
+        elif isinstance(DEFAULT_FILTER_LANGUAGE, str):
+            query &= Q(lang=DEFAULT_FILTER_LANGUAGE)
+        elif isinstance(DEFAULT_FILTER_LANGUAGE, (list, tuple)):
+            query &= Q(lang__in=DEFAULT_FILTER_LANGUAGE)
+        elif isinstance(DEFAULT_FILTER_LANGUAGE, dict):
+            query &= Q(lang__in=DEFAULT_FILTER_LANGUAGE.get(get_language(), (DEFAULT_LANGUAGE, )))
+        else:
+            query &= Q(lang=get_language())
+        return 'id__in', field.translations.filter(query).values_list('object_id', flat=True), True
     return key, value, False
