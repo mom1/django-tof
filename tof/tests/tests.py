@@ -2,21 +2,39 @@
 # @Author: MaxST
 # @Date:   2019-11-15 19:17:59
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-11-28 17:26:20
+# @Last Modified time: 2019-11-30 16:52:23
+from django.contrib import admin
 from django.contrib.admin.models import LogEntry
+from django.contrib.admin.options import IS_POPUP_VAR
+from django.contrib.admin.sites import AdminSite
+from django.contrib.admin.views.main import SEARCH_VAR
+from django.contrib.auth.admin import UserAdmin
+from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
 from django.core.management import call_command
 from django.db.models import Q
 from django.test import TestCase
-from django.utils.translation import override
-from main.models import Wine
+from django.test.client import RequestFactory
+from django.urls import reverse
+from django.utils.translation import activate, override
+from main.models import Vintage, Wine
 from mixer.backend.django import mixer
-
-from .models import (
+from tof.admin import (
+    ContentTypeAdmin, LanguageAdmin, TranslatableFieldAdmin, TranslationAdmin,
+)
+from tof.models import (
     Language, TranslatableField, Translation, TranslationFieldMixin,
 )
-from .settings import FALLBACK_LANGUAGES
-from .utils import TranslatableText
+from tof.settings import FALLBACK_LANGUAGES
+from tof.utils import TranslatableText
+
+site = admin.AdminSite(name='admin')
+
+site.register(User, UserAdmin)
+site.register(ContentType, ContentTypeAdmin)
+site.register(Language, LanguageAdmin)
+site.register(TranslatableField, TranslatableFieldAdmin)
+site.register(Translation, TranslationAdmin)
 
 
 def create_field(name='title', cls=None):
@@ -172,7 +190,7 @@ class FilterTestCase(TestCase):
 
             serch_wine = Wine.objects.filter(title=title_nl).first()
             self.assertIsNone(serch_wine)
-            from . import decorators
+            from tof import decorators
             decorators.DEFAULT_FILTER_LANGUAGE = '__all__'
             serch_wine = Wine.objects.filter(title=title_nl).first()
             self.assertEqual(wine1, serch_wine)
@@ -216,7 +234,7 @@ class TranslatableTextTestCase(TestCase):
         self.assertEqual(str(val), val.__html__())
         self.assertFalse(hasattr(val, 'resolve_expression'))
         self.assertFalse(hasattr(val, 'prepare_database_save'))
-        FALLBACK_LANGUAGES['aa'] = ('nl',)
+        FALLBACK_LANGUAGES['aa'] = ('nl', )
         with override('aa'):
             self.assertEqual(str(val), title_nl)
         del wine1.title
@@ -226,3 +244,92 @@ class TranslatableTextTestCase(TestCase):
 class Benchmark(TestCase):
     def test_benchmark(self):
         call_command('benchmark')
+
+
+class ModelAdminTests(TestCase):
+    factory = RequestFactory()
+
+    @classmethod
+    def setUpTestData(cls):
+        activate('en')
+        cls.superuser = User.objects.create_superuser(username='super', email='a@b.com', password='xxx')
+
+    def setUp(self):
+        clean_model(Wine)
+        mixer.blend(Wine, title='Wine 1')
+        create_field()
+        self.site = AdminSite()
+
+    def test_search_result(self):
+        wine = ContentType.objects.get_for_model(Wine)
+        vintage = ContentType.objects.get_for_model(Vintage)
+        m = ContentTypeAdmin(ContentType, site)
+        request = self.factory.get('/', data={SEARCH_VAR: 'tof'})
+        request.user = self.superuser
+        cl = m.get_changelist_instance(request)
+        self.assertCountEqual(cl.queryset, [])
+
+        request = self.factory.get('/', data={SEARCH_VAR: 'main'})
+        request.user = self.superuser
+        cl = m.get_changelist_instance(request)
+        self.assertCountEqual(cl.queryset, [vintage, wine])
+
+        m = LanguageAdmin(Language, site)
+        lang_aa = Language.objects.get(iso='aa')
+        request = self.factory.get('/', data={SEARCH_VAR: 'aa', IS_POPUP_VAR: '1'})
+        request.user = self.superuser
+        cl = m.get_changelist_instance(request)
+        self.assertCountEqual(cl.queryset, [lang_aa])
+
+        lang_aa.is_active = False
+        lang_aa.save()
+
+        request = self.factory.get('/', data={SEARCH_VAR: 'aa', IS_POPUP_VAR: '1'})
+        request.user = self.superuser
+        cl = m.get_changelist_instance(request)
+        self.assertCountEqual(cl.queryset, [])
+
+        request = self.factory.get('/autocomplete/', data={SEARCH_VAR: 'aa'})
+        request.user = self.superuser
+        cl = m.get_changelist_instance(request)
+        self.assertCountEqual(cl.queryset, [])
+
+    def test_delete_qs(self):
+        request = self.factory.get('/')
+        request.user = self.superuser
+        m = TranslatableFieldAdmin(TranslatableField, site)
+        m.delete_queryset(request, TranslatableField.objects.all())
+        wine1 = Wine.objects.first()
+        self.assertNotIsInstance(wine1, TranslationFieldMixin)
+
+    def test_response(self):
+        # TranslatableFieldAdmin
+        ct = ContentType.objects.get_for_model(Wine)
+        field = TranslatableField.objects.first()
+        self.client.force_login(self.superuser)
+        url = reverse('admin:tof_translatablefield_change', args=(field.pk, ))
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        response = self.client.get(url, data={'id_ct': ct.pk})
+        self.assertEqual(response.json(), {'pk': 7, 'fields': ['title', 'title', 'title', 'title', 'description']})  # WTF?
+        response = self.client.get(url, data={'id_ct': 999})
+        self.assertTrue('errors' in response.json())
+        # TranslationAdmin
+        wine1 = Wine.objects.first()
+        wine1.title = 'Wine 1 en'
+        wine1.save()
+        trans = Translation.objects.first()
+        url = reverse('admin:tof_translation_change', args=(trans.pk, ))
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        response = self.client.get(url, data={'field_id': field.pk})
+        url_auto = reverse('admin:main_wine_autocomplete')
+        self.assertEqual(response.json(), {
+            'pk': field.content_type.pk,
+            'url': url_auto,
+            'text': '',
+        })
+        response = self.client.get(url, data={'field_id': field.pk, 'id_obj': wine1.pk})
+        self.assertEqual(response.json(), {'pk': field.content_type.pk, 'text': str(wine1), 'url': url_auto})
+        response = self.client.get(url, data={'field_id': 999, 'id_obj': wine1.pk})
+        self.assertTrue('errors' in response.json())

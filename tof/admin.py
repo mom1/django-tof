@@ -2,7 +2,7 @@
 # @Author: MaxST
 # @Date:   2019-10-28 12:30:45
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-11-29 13:20:55
+# @Last Modified time: 2019-11-30 15:51:21
 import logging
 
 from django.contrib import admin
@@ -45,7 +45,7 @@ class LanguageAdmin(admin.ModelAdmin):
 
 
 @admin.register(TranslatableField)
-class TranslatableFieldsAdmin(admin.ModelAdmin):
+class TranslatableFieldAdmin(admin.ModelAdmin):
     form = TranslatableFieldForm
     search_fields = ('content_type__model', 'title')
     list_display = ('content_type', 'name', 'title')
@@ -59,7 +59,6 @@ class TranslatableFieldsAdmin(admin.ModelAdmin):
     }), )
 
     autocomplete_fields = ('content_type', )
-    url_name = '%s:%s_%s_autocomplete'
 
     def delete_queryset(self, request, queryset):
         for obj in queryset:
