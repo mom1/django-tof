@@ -2,7 +2,7 @@
 # @Author: MaxST
 # @Date:   2019-10-23 17:24:33
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-11-26 11:21:51
+# @Last Modified time: 2019-12-01 01:16:50
 
 from django.contrib.contenttypes.fields import (
     GenericForeignKey, GenericRelation,
@@ -15,7 +15,7 @@ from django.utils.translation import gettext_lazy as _
 
 from .managers import TranslationManager
 from .settings import CHANGE_DEFAULT_MANAGER
-from .utils import TranslatableText
+from .utils import MultiKeyDict, TranslatableText
 
 
 class Translation(models.Model):
@@ -54,7 +54,6 @@ class TranslationFieldMixin(models.Model):
     _translations = GenericRelation(Translation, verbose_name=_('Translation'))
 
     def __init__(self, *args, **kwargs):
-        self._end_init = False
         super().__init__(*args, **kwargs)
         self._end_init = True
 
@@ -64,17 +63,19 @@ class TranslationFieldMixin(models.Model):
         for trans in self._translations.all():
             name = names_mapper[trans.field_id].name
             attrs[name] = trans_obj = attrs.get(name) or TranslatableText()
-            setattr(trans_obj, trans.lang_id, trans.value)
+            vars(trans_obj)[trans.lang_id] = trans.value
         return attrs
 
     def get_translation(self, name):
-        attrs = self._all_translations if self._end_init else vars(self)
+        attrs = vars(self)
+        if '_end_init' in attrs:
+            attrs = self._all_translations
         return attrs.get(name) or TranslatableText()
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
-        for def_trans_attrs in type(self)._meta._field_tof.values():
-            def_trans_attrs.save_translation(self)
+        for translated_field in self._meta._field_tof.values():
+            translated_field.save_translation(self)
 
 
 class TranslatableField(models.Model):
@@ -108,25 +109,31 @@ class TranslatableField(models.Model):
         return instance.get_translation(self.name) if instance else vars(instance_cls).get(self.name)
 
     def __set__(self, instance, value):
-        translation = vars(instance)[self.name] = instance.get_translation(self.name)
-        setattr(translation, translation.get_lang() if hasattr(instance, '_end_init') else '_origin', str(value))
+        attrs = vars(instance)
+        if isinstance(value, TranslatableText):
+            attrs[self.name] = value
+        else:
+            translation = attrs[self.name] = instance.get_translation(self.name)
+            vars(translation)[translation.get_lang() if '_end_init' in attrs else '_origin'] = str(value)
 
     def __delete__(self, instance):
         vars(self).pop(self.name, None)
-        instance._meta._field_tof.pop(self.id, None)
+        instance._meta._field_tof.delete((self.id, self.name))
 
     def save_translation(self, instance):
         val = instance.get_translation(self.name)
         if val:
-            translation, _ = instance._translations.get_or_create(field=self, lang_id=val.get_lang())
-            translation.value = val
-            translation.save()
+            for lang, value in vars(val).items():
+                if lang != '_origin':
+                    translation, _ = instance._translations.get_or_create(field=self, lang_id=lang)
+                    translation.value = value
+                    translation.save()
 
     def add_translation_to_class(self, trans_mng=None):
         cls = self.content_type.model_class()
-        if not issubclass(cls, TranslationFieldMixin):
+        if not hasattr(cls._meta, '_field_tof'):
             cls.__bases__ = (TranslationFieldMixin, ) + cls.__bases__
-            cls._meta._field_tof = {}
+            cls._meta._field_tof = MultiKeyDict()
             if CHANGE_DEFAULT_MANAGER and not isinstance(cls._default_manager, TranslationManager):
                 origin = cls.objects
                 new_mng_cls = type(f'TranslationManager{cls.__name__}', (TranslationManager, type(origin)), {})
@@ -137,17 +144,17 @@ class TranslatableField(models.Model):
                 del cls.objects
                 trans_mng.contribute_to_class(cls, 'objects')
                 origin.contribute_to_class(cls, 'objects_origin')
-        setattr(cls, cls._meta._field_tof.setdefault(self.id, self).name, self)
+        setattr(cls, cls._meta._field_tof.setdefault((self.id, self.name), self).name, self)
 
     def remove_translation_from_class(self):
         cls = self.content_type.model_class()
-        cls._meta._field_tof.pop(self.id)
+        cls._meta._field_tof.delete((self.id, self.name))
         delattr(cls, self.name)
         field = cls._meta.get_field(self.name)
         field.contribute_to_class(cls, self.name)
-        if issubclass(cls, TranslationFieldMixin) and not cls._meta._field_tof:
+        if not cls._meta._field_tof:
             del cls._meta._field_tof
-            cls.__bases__ = cls.__bases__[1:]
+            cls.__bases__ = tuple(base for base in cls.__bases__ if base != TranslationFieldMixin)  # important!
             if CHANGE_DEFAULT_MANAGER and isinstance(cls._default_manager, TranslationManager):
                 delattr(cls, cls._default_manager.default_name)
                 cls._meta.default_manager_name = None

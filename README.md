@@ -1,6 +1,12 @@
 # django-tof
 Django models translation on fly 🛸️
 
+----
+This project was initiated, promoted and accompanied by winePad GmbH. The development is based entirely on ideas, experiences and the financing of winePad GmbH (winePad.at).
+
+Dieses Projekt wurde durch winePad GmbH iniziiert, gefördert und bis zur Veröffentlichung begleitet. Die Entwicklung basiert in vollem Umfang auf Ideen, Erfahrungen und der Finanzierung von winePad GmbH (winePad.at).
+
+----
 
 ## Requirements
 

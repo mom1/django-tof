@@ -1,0 +1,24 @@
+{% load i18n static %}
+{% spaceless %}
+  {% get_current_language as LANGUAGE_CODE %}
+  {% with widget.attrs.id as common_id %}
+  <div class="tabbed-area _{{ common_id }}">
+    {% for widget in widget.subwidgets %}
+      <input class="itab" id="{{ widget.attrs.lang }}_{{ widget.attrs.id }}" type="radio" name="{{ common_id }}" {% if forloop.counter0 == active_tab|default:0 or LANGUAGE_CODE == widget.attrs.lang %} checked {% endif %}/>
+      <label class="ltab" for="{{ widget.attrs.lang }}_{{ widget.attrs.id }}">
+        {{ widget.attrs.lang }}
+      </label>
+      <div class="tab">
+        {% include widget.template_name %}
+      </div>
+    {% endfor %}
+    <label class="ltab add-tab" for="add-{{ common_id }}" onclick="this.children[0].click();return false;" title="{% trans 'Add another Language' %}">
+      <a class="related-widget-wrapper-link add-language" id="add_id_lang_{{ common_id }}" href='{% url "admin:tof_language_changelist" %}?_to_field=iso&amp;_popup=1' title="{% trans 'Add another Language' %}">
+        <img src="{% static 'admin/img/icon-addlink.svg' %}" alt="{% trans 'Add' %}">
+      </a>
+    </label>
+    <input class="itab" id="id_lang_{{ common_id }}" type="radio" name="{{ common_id }}"/>
+    <div class="tab"></div>
+  </div>
+  {% endwith %}
+{% endspaceless %}

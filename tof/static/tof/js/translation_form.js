@@ -2,7 +2,7 @@
 * @Author: MaxST
 * @Date:   2019-11-09 13:52:25
 * @Last Modified by:   MaxST
-* @Last Modified time: 2019-11-22 13:04:13
+* @Last Modified time: 2019-11-26 16:01:57
 */
 (function ($) {
   'use strict';
@@ -52,7 +52,6 @@
       if ($('#id_object_id').is('input')) {
         params['id_obj'] = $('#id_object_id').val();
       }
-      var esc = encodeURIComponent;
       $.get({
         url: '',
         data: params,

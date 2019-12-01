@@ -2,10 +2,11 @@
 # @Author: MaxST
 # @Date:   2019-10-28 12:30:45
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-11-22 13:37:22
+# @Last Modified time: 2019-11-30 15:51:21
 import logging
 
 from django.contrib import admin
+from django.contrib.admin.options import IS_POPUP_VAR
 from django.contrib.contenttypes.admin import (
     GenericInlineModelAdmin, GenericStackedInline, GenericTabularInline,
 )
@@ -15,7 +16,7 @@ from django.http import JsonResponse
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 
-from .forms import TranslatableFieldsForm, TranslationsForm
+from .forms import TranslatableFieldForm, TranslationsForm
 from .models import Language, TranslatableField, Translation
 
 # Get an instance of a logger
@@ -39,12 +40,13 @@ class LanguageAdmin(admin.ModelAdmin):
 
     def get_search_results(self, request, queryset, search_term):
         queryset, use_distinct = super().get_search_results(request, queryset, search_term)
-        return queryset.filter(is_active=True), use_distinct
+        query = Q(is_active=True) if IS_POPUP_VAR in request.GET or 'autocomplete' in request.path else Q()
+        return queryset.filter(query), use_distinct
 
 
 @admin.register(TranslatableField)
-class TranslatableFieldsAdmin(admin.ModelAdmin):
-    form = TranslatableFieldsForm
+class TranslatableFieldAdmin(admin.ModelAdmin):
+    form = TranslatableFieldForm
     search_fields = ('content_type__model', 'title')
     list_display = ('content_type', 'name', 'title')
 
@@ -57,7 +59,6 @@ class TranslatableFieldsAdmin(admin.ModelAdmin):
     }), )
 
     autocomplete_fields = ('content_type', )
-    url_name = '%s:%s_%s_autocomplete'
 
     def delete_queryset(self, request, queryset):
         for obj in queryset:

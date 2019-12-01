@@ -2,7 +2,7 @@
 # @Author: MaxST
 # @Date:   2019-10-28 20:30:42
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-11-19 14:18:27
+# @Last Modified time: 2019-11-27 12:06:39
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
@@ -25,3 +25,4 @@ class Wine(models.Model):
 class Vintage(models.Model):
     wine = models.ForeignKey(Wine, related_name='vintages', on_delete=models.CASCADE)
     year = models.IntegerField(_('Year'), default=0)
+    description = models.TextField(_('Description'), null=True, blank=True)
