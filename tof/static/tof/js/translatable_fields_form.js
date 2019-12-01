@@ -36,6 +36,10 @@
       data.push({id: field, text: field});
     });
     $select.html(sel);
+    $('#id_name').change(function () {
+       var title = $(this).val();
+       $('#id_title').val(title[0].toUpperCase() + title.slice(1));
+     });
     return $('#id_name').djangoAdminSelect2({
       ajax: {
         data: function (request_data) {
@@ -54,11 +58,10 @@
     $('#id_content_type').change();
     $('#id_content_type').change(function () {
       $('#id_name').removeAttr('readonly');
-      if (! $(this).val()) {
+      if (!$(this).val()) {
         $('#id_name').attr('readonly', true);
         return;
       }
-      var esc = encodeURIComponent;
       $.get({
         url: '?id_ct=' + $(this).val(),
         success: function (data, textStatus, jqXHR) {
@@ -71,4 +74,6 @@
       });
     });
   });
+
 }(jQuery));
+
