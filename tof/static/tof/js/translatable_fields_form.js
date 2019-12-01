@@ -2,7 +2,7 @@
 * @Author: MaxST
 * @Date:   2019-11-09 13:52:25
 * @Last Modified by:   MaxST
-* @Last Modified time: 2019-11-26 15:59:58
+* @Last Modified time: 2019-12-01 14:44:20
 */
 (function ($) {
   'use strict';
@@ -26,7 +26,8 @@
       'data-placeholder': '',
       'data-theme': 'admin-autocomplete'
     });
-    var data = [];
+    var data = [{id: '', text: ''}];
+    sel.append('<option value="" ></option>');
     $.each(fields, function (index, field) {
       var selected = '';
       if (field == value) {
@@ -37,6 +38,10 @@
     });
     var common_data = data;
     $select.html(sel);
+    $('#id_name').change(function () {
+       var title = $(this).val();
+       $('#id_title').val(title[0].toUpperCase() + title.slice(1));
+     });
     return $('#id_name').djangoAdminSelect2({
       ajax: {
         data: function (request_data) {
@@ -55,11 +60,10 @@
     $('#id_content_type').change();
     $('#id_content_type').change(function () {
       $('#id_name').removeAttr('readonly');
-      if (! $(this).val()) {
+      if (!$(this).val()) {
         $('#id_name').attr('readonly', true);
         return;
       }
-      var esc = encodeURIComponent;
       $.get({
         url: '?id_ct=' + $(this).val(),
         success: function (data, textStatus, jqXHR) {
@@ -72,4 +76,6 @@
       });
     });
   });
+
 }(jQuery));
+
