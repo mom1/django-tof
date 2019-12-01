@@ -2,7 +2,7 @@
 * @Author: MaxST
 * @Date:   2019-11-09 13:52:25
 * @Last Modified by:   MaxST
-* @Last Modified time: 2019-11-26 15:59:58
+* @Last Modified time: 2019-12-01 14:44:20
 */
 (function ($) {
   'use strict';
@@ -26,7 +26,8 @@
       'data-placeholder': '',
       'data-theme': 'admin-autocomplete'
     });
-    var data = [];
+    var data = [{id: '', text: ''}];
+    sel.append('<option value="" ></option>');
     $.each(fields, function (index, field) {
       var selected = '';
       if (field == value) {
