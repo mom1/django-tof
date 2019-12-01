@@ -2,7 +2,7 @@
 # @Author: MaxST
 # @Date:   2019-11-15 19:17:59
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-12-01 15:45:56
+# @Last Modified time: 2019-12-01 17:29:54
 from django.contrib import admin
 from django.contrib.admin.models import LogEntry
 from django.contrib.admin.options import IS_POPUP_VAR
@@ -48,7 +48,7 @@ def create_field(name='title', cls=None):
 
 def clean_model(cls, attr='title'):
     if issubclass(cls, TranslationFieldMixin):
-        for fld in {**cls._meta._field_tof['by_id']}.values():
+        for fld in cls._meta._field_tof.values():
             fld.remove_translation_from_class()
 
 

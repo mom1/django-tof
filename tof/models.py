@@ -2,7 +2,7 @@
 # @Author: MaxST
 # @Date:   2019-10-23 17:24:33
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-12-01 15:46:41
+# @Last Modified time: 2019-12-01 17:20:46
 
 from django.contrib.contenttypes.fields import (
     GenericForeignKey, GenericRelation,
@@ -15,7 +15,7 @@ from django.utils.translation import gettext_lazy as _
 
 from .managers import TranslationManager
 from .settings import CHANGE_DEFAULT_MANAGER
-from .utils import TranslatableText
+from .utils import MultiKeyDict, TranslatableText
 
 
 class Translation(models.Model):
@@ -59,7 +59,7 @@ class TranslationFieldMixin(models.Model):
 
     @cached_property
     def _all_translations(self):
-        attrs, names_mapper = vars(self), self._meta._field_tof['by_id']
+        attrs, names_mapper = vars(self), self._meta._field_tof
         for trans in self._translations.all():
             name = names_mapper[trans.field_id].name
             attrs[name] = trans_obj = attrs.get(name) or TranslatableText()
@@ -74,7 +74,7 @@ class TranslationFieldMixin(models.Model):
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
-        for translated_field in self._meta._field_tof['by_id'].values():
+        for translated_field in self._meta._field_tof.values():
             translated_field.save_translation(self)
 
 
@@ -118,8 +118,7 @@ class TranslatableField(models.Model):
 
     def __delete__(self, instance):
         vars(self).pop(self.name, None)
-        del instance._meta._field_tof['by_id'][self.id]
-        del instance._meta._field_tof['by_name'][self.name]
+        del instance._meta._field_tof[(self.id, self.name)]
 
     def save_translation(self, instance):
         val = instance.get_translation(self.name)
@@ -134,7 +133,7 @@ class TranslatableField(models.Model):
         cls = self.content_type.model_class()
         if not hasattr(cls._meta, '_field_tof'):
             cls.__bases__ = (TranslationFieldMixin, ) + cls.__bases__
-            cls._meta._field_tof = {'by_name': {}, 'by_id': {}}
+            cls._meta._field_tof = MultiKeyDict()
             if CHANGE_DEFAULT_MANAGER and not isinstance(cls._default_manager, TranslationManager):
                 origin = cls.objects
                 new_mng_cls = type(f'TranslationManager{cls.__name__}', (TranslationManager, type(origin)), {})
@@ -145,17 +144,15 @@ class TranslatableField(models.Model):
                 del cls.objects
                 trans_mng.contribute_to_class(cls, 'objects')
                 origin.contribute_to_class(cls, 'objects_origin')
-        setattr(cls, cls._meta._field_tof['by_id'].setdefault(self.id, self).name, self)
-        cls._meta._field_tof['by_name'].setdefault(self.name, self)
+        setattr(cls, cls._meta._field_tof.setdefault((self.id, self.name), self).name, self)
 
     def remove_translation_from_class(self):
         cls = self.content_type.model_class()
-        del cls._meta._field_tof['by_id'][self.id]
-        del cls._meta._field_tof['by_name'][self.name]
+        del cls._meta._field_tof[(self.id, self.name)]
         delattr(cls, self.name)
         field = cls._meta.get_field(self.name)
         field.contribute_to_class(cls, self.name)
-        if not cls._meta._field_tof['by_id']:
+        if not cls._meta._field_tof:
             del cls._meta._field_tof
             cls.__bases__ = tuple(base for base in cls.__bases__ if base != TranslationFieldMixin)  # important!
             if CHANGE_DEFAULT_MANAGER and isinstance(cls._default_manager, TranslationManager):
