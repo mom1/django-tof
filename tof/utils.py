@@ -2,10 +2,9 @@
 # @Author: MaxST
 # @Date:   2019-10-30 14:19:55
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-12-01 15:46:49
+# @Last Modified time: 2019-12-01 15:56:34
 from django.utils.html import html_safe
 from django.utils.translation import get_language
-from itertools import zip_longest
 from .settings import DEFAULT_LANGUAGE, FALLBACK_LANGUAGES, SITE_ID
 
 
