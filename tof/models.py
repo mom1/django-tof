@@ -2,7 +2,7 @@
 # @Author: MaxST
 # @Date:   2019-10-23 17:24:33
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-12-01 15:46:41
+# @Last Modified time: 2019-12-02 18:08:48
 
 from django.contrib.contenttypes.fields import (
     GenericForeignKey, GenericRelation,
@@ -118,8 +118,7 @@ class TranslatableField(models.Model):
 
     def __delete__(self, instance):
         vars(self).pop(self.name, None)
-        del instance._meta._field_tof['by_id'][self.id]
-        del instance._meta._field_tof['by_name'][self.name]
+        instance._meta._field_tof['by_name'].pop(instance._meta._field_tof['by_id'].pop(self.id, self).name, None)
 
     def save_translation(self, instance):
         val = instance.get_translation(self.name)
@@ -145,13 +144,15 @@ class TranslatableField(models.Model):
                 del cls.objects
                 trans_mng.contribute_to_class(cls, 'objects')
                 origin.contribute_to_class(cls, 'objects_origin')
-        setattr(cls, cls._meta._field_tof['by_id'].setdefault(self.id, self).name, self)
-        cls._meta._field_tof['by_name'].setdefault(self.name, self)
+        setattr(
+            cls,
+            cls._meta._field_tof['by_name'].setdefault(cls._meta._field_tof['by_id'].setdefault(self.id, self).name, self).name,
+            self,
+        )
 
     def remove_translation_from_class(self):
         cls = self.content_type.model_class()
-        del cls._meta._field_tof['by_id'][self.id]
-        del cls._meta._field_tof['by_name'][self.name]
+        cls._meta._field_tof['by_name'].pop(cls._meta._field_tof['by_id'].pop(self.id, self).name, None)
         delattr(cls, self.name)
         field = cls._meta.get_field(self.name)
         field.contribute_to_class(cls, self.name)
