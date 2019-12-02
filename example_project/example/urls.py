@@ -33,4 +33,4 @@ if settings.DEBUG:
             path('__debug__/', include(debug_toolbar.urls)),
         ] + urlpatterns
 else:
-    urlpatterns = [path('admin/password_change/', lambda x: redirect('admin:index'))] + urlpatterns
+    urlpatterns = i18n_patterns(path('admin/password_change/', lambda x: redirect('admin:index'))) + urlpatterns
