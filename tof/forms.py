@@ -2,11 +2,10 @@
 # @Author: MaxST
 # @Date:   2019-11-09 13:47:17
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-12-01 17:17:59
+# @Last Modified time: 2019-12-02 18:26:02
 from django import forms
 from django.utils.translation import get_language
 
-from .models import TranslationFieldMixin
 from .utils import TranslatableText
 
 
@@ -112,8 +111,9 @@ class TranslationFieldModelForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        if issubclass(self._meta.model, TranslationFieldMixin):
+        _field_tof = getattr(self._meta.model._meta, '_field_tof', None)
+        if _field_tof:
             from .fields import TranslatableFieldFormField
-            for field in self._meta.model._meta._field_tof.values():
+            for field in _field_tof.values():
                 if field.name not in self.only_current_lang:
                     self.fields[field.name] = TranslatableFieldFormField(self.fields[field.name])
