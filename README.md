@@ -8,6 +8,8 @@ Dieses Projekt wurde durch winePad GmbH iniziiert, gefördert und bis zur Veröf
 
 ----
 
+[![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/i0QJJJEMKSU/0.jpg)](https://www.youtube.com/watch?v=i0QJJJEMKSU)
+
 ## Requirements
 
 - Python (\>=3.6)
@@ -24,4 +26,3 @@ Dieses Projekt wurde durch winePad GmbH iniziiert, gefördert und bis zur Veröf
 1. Run: `poetry install` for install all dependencies.
 1. Run: `poetry shell` for activate virtual environment.
 1. Run: `python manage.py runserver` for starting development server
-
