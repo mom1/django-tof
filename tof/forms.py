@@ -2,7 +2,7 @@
 # @Author: MaxST
 # @Date:   2019-11-09 13:47:17
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-12-02 18:05:50
+# @Last Modified time: 2019-12-04 12:37:11
 from django import forms
 from django.utils.translation import get_language
 

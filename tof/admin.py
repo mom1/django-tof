@@ -2,7 +2,7 @@
 # @Author: MaxST
 # @Date:   2019-10-28 12:30:45
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-11-30 15:51:21
+# @Last Modified time: 2019-12-04 13:06:19
 import logging
 
 from django.contrib import admin
@@ -16,7 +16,9 @@ from django.http import JsonResponse
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 
-from .forms import TranslatableFieldForm, TranslationsForm
+from .forms import (
+    TranslatableFieldForm, TranslationFieldModelForm, TranslationsForm,
+)
 from .models import Language, TranslatableField, Translation
 
 # Get an instance of a logger
@@ -142,3 +144,14 @@ class TranslationStackedInline(TranslationInline, GenericStackedInline):
 
 class TranslationTabularInline(TranslationInline, GenericTabularInline):
     pass
+
+
+class TofAdmin(admin.ModelAdmin):
+    form = TranslationFieldModelForm
+
+    def get_readonly_fields(self, request, obj):
+        response = list(super().get_readonly_fields(request, obj))
+        field_tof = getattr(self.model._meta, '_field_tof', {}).get('by_name')
+        if field_tof and any(issubclass(c, TranslationInline) for c in self.inlines):
+            response.extend(field_tof.keys())
+        return tuple(response)
