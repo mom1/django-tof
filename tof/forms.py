@@ -115,4 +115,5 @@ class TranslationFieldModelForm(forms.ModelForm):
         if _field_tof:
             from .fields import TranslatableFieldFormField
             for name in set(_field_tof.keys()) - set(self.only_current_lang):
-                self.fields[name] = TranslatableFieldFormField(self.fields[name])
+                if name in self.fields:
+                    self.fields[name] = TranslatableFieldFormField(self.fields[name])

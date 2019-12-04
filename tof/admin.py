@@ -104,6 +104,12 @@ class TranslationAdmin(admin.ModelAdmin):
     autocomplete_fields = ('field', 'lang')
     url_name = '%s:%s_%s_autocomplete'
 
+    def get_readonly_fields(self, request, obj):
+        response = list(super().get_readonly_fields(request, obj))
+        if obj and obj.pk:
+            response.append('field')
+        return tuple(response)
+
     def _changeform_view(self, request, object_id, form_url, extra_context):
         fld_id = request.GET.get('field_id')
         if fld_id:
@@ -127,6 +133,7 @@ class TranslationInline(GenericInlineModelAdmin):
     model = Translation
     extra = 0
     autocomplete_fields = ('field', 'lang')
+    fields = ('field', 'lang', 'value')
 
 
 class TranslationStackedInline(TranslationInline, GenericStackedInline):
