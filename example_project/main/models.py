@@ -2,9 +2,20 @@
 # @Author: MaxST
 # @Date:   2019-10-28 20:30:42
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-11-27 12:06:39
+# @Last Modified time: 2019-12-10 22:48:00
 from django.db import models
 from django.utils.translation import gettext_lazy as _
+
+
+class Winery(models.Model):
+    class Meta:
+        verbose_name = _('Winery')
+        verbose_name_plural = _('Winery-plural')
+        ordering = ('sort', )
+
+    title = models.CharField(_('Title'), max_length=250, default='', blank=True, null=False)
+    description = models.TextField(_('Description'), null=True, blank=True)
+    sort = models.IntegerField(_('Sort'), default=0, blank=True, null=True)
 
 
 class Wine(models.Model):

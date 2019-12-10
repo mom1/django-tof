@@ -2,7 +2,7 @@
 # @Author: MaxST
 # @Date:   2019-11-15 19:17:59
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-12-01 15:45:56
+# @Last Modified time: 2019-12-10 23:00:11
 from django.contrib import admin
 from django.contrib.admin.models import LogEntry
 from django.contrib.admin.options import IS_POPUP_VAR
@@ -18,7 +18,7 @@ from django.test import TestCase
 from django.test.client import RequestFactory
 from django.urls import reverse
 from django.utils.translation import activate, override
-from main.models import Vintage, Wine
+from main.models import Vintage, Wine, Winery
 from mixer.backend.django import mixer
 from tof.admin import (
     ContentTypeAdmin, LanguageAdmin, TranslatableFieldAdmin, TranslationAdmin,
@@ -265,6 +265,7 @@ class ModelAdminTests(TestCase):
     def test_search_result(self):
         wine = ContentType.objects.get_for_model(Wine)
         vintage = ContentType.objects.get_for_model(Vintage)
+        winery = ContentType.objects.get_for_model(Winery)
         m = ContentTypeAdmin(ContentType, site)
         request = self.factory.get('/', data={SEARCH_VAR: 'tof'})
         request.user = self.superuser
@@ -274,7 +275,7 @@ class ModelAdminTests(TestCase):
         request = self.factory.get('/', data={SEARCH_VAR: 'main'})
         request.user = self.superuser
         cl = m.get_changelist_instance(request)
-        self.assertCountEqual(cl.queryset, [vintage, wine])
+        self.assertCountEqual(cl.queryset, [vintage, wine, winery])
 
         m = LanguageAdmin(Language, site)
         lang_aa = Language.objects.get(iso='aa')

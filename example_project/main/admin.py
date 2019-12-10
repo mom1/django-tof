@@ -2,13 +2,28 @@
 # @Author: MaxST
 # @Date:   2019-10-28 20:30:42
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-12-04 13:24:02
+# @Last Modified time: 2019-12-10 22:54:21
 from django.contrib import admin
-from tof.admin import TranslationStackedInline, TranslationTabularInline, TofAdmin
+from tof.admin import TofAdmin, TranslationTabularInline
 from tof.decorators import tof_prefetch
-from tof.forms import TranslationFieldModelForm
 
-from .models import Vintage, Wine
+from .models import Vintage, Wine, Winery
+
+
+@admin.register(Winery)
+class WineryAdmin(TofAdmin):
+    """Example translatable field №3
+
+    This class is example where you can see Tabular inline
+
+    Attributes:
+        list_display: [description]
+        search_fields: [description]
+        inlines
+    """
+    list_display = ('title', 'description', 'sort')
+    search_fields = ('title', )
+    inlines = (TranslationTabularInline, )
 
 
 @admin.register(Wine)
@@ -24,7 +39,6 @@ class WineAdmin(TofAdmin):
     """
     list_display = ('title', 'description', 'active', 'sort')
     search_fields = ('title', )
-    inlines = (TranslationTabularInline, )
     only_current_lang = ('description', )
 
 
