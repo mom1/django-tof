@@ -2,9 +2,10 @@
 # @Author: MaxST
 # @Date:   2019-10-28 12:30:45
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-12-04 13:06:19
+# @Last Modified time: 2019-12-08 12:27:42
 import logging
 
+from django import forms
 from django.contrib import admin
 from django.contrib.admin.options import IS_POPUP_VAR
 from django.contrib.contenttypes.admin import (
@@ -17,7 +18,8 @@ from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 
 from .forms import (
-    TranslatableFieldForm, TranslationFieldModelForm, TranslationsForm,
+    TranslatableFieldForm, TranslationFieldModelForm,
+    TranslationsForm, TranslationsInLineForm,
 )
 from .models import Language, TranslatableField, Translation
 
@@ -65,6 +67,13 @@ class TranslatableFieldAdmin(admin.ModelAdmin):
     def delete_queryset(self, request, queryset):
         for obj in queryset:
             obj.delete()
+
+    def get_search_results(self, request, queryset, search_term):
+        ct = request.GET.get('ct')
+        query = Q()
+        if ct:
+            query = Q(content_type_id=ct)
+        return super().get_search_results(request, queryset.filter(query), search_term)
 
     def _changeform_view(self, request, object_id, form_url, extra_context):
         id_ct = request.GET.get('id_ct')
@@ -136,6 +145,13 @@ class TranslationInline(GenericInlineModelAdmin):
     extra = 0
     autocomplete_fields = ('field', 'lang')
     fields = ('field', 'lang', 'value')
+    form = TranslationsInLineForm
+
+    @property
+    def media(self):
+        media = super().media
+        js = ('tof/js/translation_inline.js', )
+        return media + forms.Media(js=js)
 
 
 class TranslationStackedInline(TranslationInline, GenericStackedInline):
@@ -148,6 +164,7 @@ class TranslationTabularInline(TranslationInline, GenericTabularInline):
 
 class TofAdmin(admin.ModelAdmin):
     form = TranslationFieldModelForm
+    only_current_lang = ()
 
     def get_readonly_fields(self, request, obj):
         response = list(super().get_readonly_fields(request, obj))
@@ -155,3 +172,8 @@ class TofAdmin(admin.ModelAdmin):
         if field_tof and any(issubclass(c, TranslationInline) for c in self.inlines):
             response.extend(field_tof.keys())
         return tuple(response)
+
+    def get_form(self, request, obj=None, change=False, **kwargs):
+        form = super().get_form(request, obj=obj, change=change, **kwargs)
+        form.only_current_lang += self.only_current_lang
+        return form

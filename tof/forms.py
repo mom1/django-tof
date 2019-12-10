@@ -2,7 +2,9 @@
 # @Author: MaxST
 # @Date:   2019-11-09 13:47:17
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-12-04 12:37:11
+# @Last Modified time: 2019-12-10 22:12:59
+from functools import wraps
+from django.contrib.contenttypes.models import ContentType
 from django import forms
 from django.utils.translation import get_language
 
@@ -12,6 +14,23 @@ from .utils import TranslatableText
 class TranslationsForm(forms.ModelForm):
     class Media:
         js = ('tof/js/translation_form.js', )
+
+
+class TranslationsInLineForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['field'].widget.widget.get_url = self.filter_ct(self.fields['field'].widget.widget.get_url)
+
+    def filter_ct(self, func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            response = func(*args, **kwargs)
+            if self.instance and self.instance.content_object:
+                ct = ContentType.objects.get_for_model(self.instance.content_object._meta.model)
+                return f'{response}?ct={ct.pk}'
+            return response
+
+        return wrapper
 
 
 class TranslatableFieldForm(forms.ModelForm):

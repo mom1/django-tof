@@ -2,24 +2,17 @@
 # @Author: MaxST
 # @Date:   2019-10-28 20:30:42
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-11-29 14:04:24
+# @Last Modified time: 2019-12-04 13:24:02
 from django.contrib import admin
+from tof.admin import TranslationStackedInline, TranslationTabularInline, TofAdmin
 from tof.decorators import tof_prefetch
 from tof.forms import TranslationFieldModelForm
 
 from .models import Vintage, Wine
 
 
-class TransForm(TranslationFieldModelForm):
-    """Example translatable field №3
-
-    This class is example where one field like example №1 and second like example №2
-    """
-    only_current_lang = ('description',)
-
-
 @admin.register(Wine)
-class WineAdmin(admin.ModelAdmin):
+class WineAdmin(TofAdmin):
     """Example translatable field №2
 
     This class is example where translatable field save values to all added languages
@@ -31,7 +24,8 @@ class WineAdmin(admin.ModelAdmin):
     """
     list_display = ('title', 'description', 'active', 'sort')
     search_fields = ('title', )
-    form = TransForm
+    inlines = (TranslationTabularInline, )
+    only_current_lang = ('description', )
 
 
 @admin.register(Vintage)
