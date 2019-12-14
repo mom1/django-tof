@@ -10,6 +10,8 @@ Dieses Projekt wurde durch winePad GmbH iniziiert, gefördert und bis zur Veröf
 
 [![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/i0QJJJEMKSU/0.jpg)](https://www.youtube.com/watch?v=i0QJJJEMKSU)
 
+_[Russian readme](README_ru.md)_
+
 ## Requirements
 
 - Python (\>=3.6)
