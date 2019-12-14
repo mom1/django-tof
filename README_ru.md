@@ -43,7 +43,7 @@ INSTALLED_APPS = [
 1. Если нужно поддерживать некоторое количество языков и вносить их одновременно то для удобства можно воспользоваться `TofAdmin`.
 Использование `class CustomModelAdmin(TofAdmin)` приведет к тому что переводимые поля (добавленные в "Translatable fields") будут иметь возможность
 указать конкретный язык
-![Widget for translatable fields](https://github.com/mom1/django-tof/blob/master/docs/images/field_with_langs.jpeg)
+![Widget for translatable fields](docs/images/field_with_langs.jpeg)
 При этом есть возможность некоторые поля оставить в предыдущем виде указав их в `TofAdmin` атрибут `only_current_lang = ('description', )`
 1. Также можно использовать инлайн формы представления переводов. Для этого в админ классе (обязательно унаследованного от "TofAdmin") указать
 `inlines = (TranslationTabularInline, )` или `inlines = (TranslationStackedInline, )`
