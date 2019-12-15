@@ -59,7 +59,7 @@ In this case if current language is 'en', then the value saved in the model will
   1. If you need to support a certain number of languages and add them at the same time, you can use `TofAdmin`.
 Using the `class CustomModelAdmin(TofAdmin)` will cause the translated fields (added to the "Translatable fields") will be able to specify a specific language.
 At the same time, it is possible to leave some fields in the previous form by specify them in `TofAdmin` with attribute `only_current_lang = ('description', )`. <br>
-![Widget for translatable fields](docs/images/field_with_langs.jpeg)
+![Widget for translatable fields](https://raw.githubusercontent.com/mom1/django-tof/master/docs/images/field_with_langs.jpeg)
   1. You can also use inline translation submission forms. To do this, specify admin class (always inherited from "TofAdmin") `inlines = (TranslationTabularInline, )`
 or `inlines = (TranslationStackedInline, )`
 
