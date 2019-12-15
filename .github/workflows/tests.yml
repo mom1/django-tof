@@ -20,11 +20,16 @@ jobs:
           python -m pip install poetry
           cd ./example_project/
           python -m poetry install
+          python -m poetry run pip install codecov
       - name: Test with django test
         run: |
           cd ./example_project/
           python -m poetry run coverage run --source='tof' manage.py test tof
-      - name: Tests report
-        run: |
-          cd ./example_project/
-          python -m poetry run coverage report
+          python -m poetry run coverage xml
+      - name: Codecov
+        uses: codecov/codecov-action@v1.0.5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          file: ./example_project/coverage.xml
+          flags: ${{ matrix.python-version }}
+          name: ${{ github.ref }}
