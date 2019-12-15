@@ -2,7 +2,7 @@
 # @Author: MaxST
 # @Date:   2019-10-28 12:30:45
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-12-15 14:43:22
+# @Last Modified time: 2019-12-15 15:20:57
 import logging
 
 from django import forms
@@ -128,7 +128,7 @@ class TranslationAdmin(admin.ModelAdmin):
     def get_readonly_fields(self, request, obj):
         response = list(super().get_readonly_fields(request, obj))
         if obj and obj.pk:
-            response.append('field')
+            response.extend(['field', 'object_id'])
         return tuple(response)
 
     def _changeform_view(self, request, object_id, form_url, extra_context):
