@@ -2,7 +2,7 @@
 # @Author: MaxST
 # @Date:   2019-10-28 12:30:45
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-12-15 14:21:06
+# @Last Modified time: 2019-12-15 14:43:22
 import logging
 
 from django import forms
@@ -35,6 +35,15 @@ class ContentTypeAdmin(admin.ModelAdmin):
     def get_search_results(self, request, queryset, search_term):
         queryset, use_distinct = super().get_search_results(request, queryset, search_term)
         return queryset.filter(~Q(app_label='tof')), use_distinct
+
+    def has_add_permission(self, *args, **kwargs):
+        return False
+
+    def has_change_permission(self, *args, **kwargs):
+        return False
+
+    def has_delete_permission(self, *args, **kwargs):
+        return False
 
 
 @admin.register(Language)
