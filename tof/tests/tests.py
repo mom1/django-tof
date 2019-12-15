@@ -2,7 +2,7 @@
 # @Author: MaxST
 # @Date:   2019-11-15 19:17:59
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-12-15 13:58:45
+# @Last Modified time: 2019-12-15 14:23:41
 from django.contrib import admin
 from django.contrib.admin.models import LogEntry
 from django.contrib.admin.options import IS_POPUP_VAR
@@ -314,7 +314,7 @@ class ModelAdminTests(TestCase):
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
         response = self.client.get(url, data={'id_ct': ct.pk})
-        self.assertEqual(response.json(), {'pk': 7, 'fields': ['title', 'title', 'title', 'title', 'description', 'description']})  # WTF?
+        self.assertEqual(response.json(), {'pk': 7, 'fields': ['title', 'title', 'title', 'title', 'description']})  # WTF?
         response = self.client.get(url, data={'id_ct': 999})
         self.assertTrue('errors' in response.json())
         # TranslationAdmin
