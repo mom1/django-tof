@@ -2,7 +2,9 @@
 # @Author: MaxST
 # @Date:   2019-11-09 13:47:17
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-12-02 18:05:50
+# @Last Modified time: 2019-12-15 14:13:23
+from functools import wraps
+from django.contrib.contenttypes.models import ContentType
 from django import forms
 from django.utils.translation import get_language
 
@@ -12,6 +14,26 @@ from .utils import TranslatableText
 class TranslationsForm(forms.ModelForm):
     class Media:
         js = ('tof/js/translation_form.js', )
+
+
+class TranslationsInLineForm(forms.ModelForm):
+    def __init__(self, *args, parent_object=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.parent_object = parent_object
+        field = self.fields.get('field')
+        if field:
+            field.widget.widget.get_url = self.filter_ct(field.widget.widget.get_url)
+            field.widget.can_add_related = field.widget.can_change_related = False
+
+    def filter_ct(self, func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            response = func(*args, **kwargs)
+            if self.parent_object:
+                return f'{response}?ct={ContentType.objects.get_for_model(self.parent_object).pk}'
+            return response
+
+        return wrapper
 
 
 class TranslatableFieldForm(forms.ModelForm):
@@ -115,4 +137,5 @@ class TranslationFieldModelForm(forms.ModelForm):
         if _field_tof:
             from .fields import TranslatableFieldFormField
             for name in set(_field_tof.keys()) - set(self.only_current_lang):
-                self.fields[name] = TranslatableFieldFormField(self.fields[name])
+                if name in self.fields:
+                    self.fields[name] = TranslatableFieldFormField(self.fields[name])

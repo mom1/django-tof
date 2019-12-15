@@ -2,24 +2,32 @@
 # @Author: MaxST
 # @Date:   2019-10-28 20:30:42
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-11-29 14:04:24
+# @Last Modified time: 2019-12-10 22:54:21
 from django.contrib import admin
+from tof.admin import TofAdmin, TranslationTabularInline
 from tof.decorators import tof_prefetch
-from tof.forms import TranslationFieldModelForm
 
-from .models import Vintage, Wine
+from .models import Vintage, Wine, Winery
 
 
-class TransForm(TranslationFieldModelForm):
+@admin.register(Winery)
+class WineryAdmin(TofAdmin):
     """Example translatable field №3
 
-    This class is example where one field like example №1 and second like example №2
+    This class is example where you can see Tabular inline
+
+    Attributes:
+        list_display: [description]
+        search_fields: [description]
+        inlines
     """
-    only_current_lang = ('description',)
+    list_display = ('title', 'description', 'sort')
+    search_fields = ('title', )
+    inlines = (TranslationTabularInline, )
 
 
 @admin.register(Wine)
-class WineAdmin(admin.ModelAdmin):
+class WineAdmin(TofAdmin):
     """Example translatable field №2
 
     This class is example where translatable field save values to all added languages
@@ -31,7 +39,7 @@ class WineAdmin(admin.ModelAdmin):
     """
     list_display = ('title', 'description', 'active', 'sort')
     search_fields = ('title', )
-    form = TransForm
+    only_current_lang = ('description', )
 
 
 @admin.register(Vintage)

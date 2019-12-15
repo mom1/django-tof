@@ -2,7 +2,7 @@
 # @Author: MaxST
 # @Date:   2019-11-17 15:03:06
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-12-01 15:39:07
+# @Last Modified time: 2019-12-15 16:25:52
 from functools import wraps
 
 from django.db.models import Q
@@ -15,9 +15,14 @@ def tof_prefetch(*wrapper_args):
     def _tof_prefetch(func):
         @wraps(func)
         def wrapper(*args, **kwargs):
-            entrys = [f'{i}___translations' for i in wrapper_args] if wrapper_args else ['_translations']
+            entrys = [
+                f'{i}___translations' for i in wrapper_args
+                if getattr(getattr(args[0].model, i).field.related_model, '_translations', None)
+            ] if wrapper_args else ['_translations']
             return func(*args, **kwargs).prefetch_related(*entrys)
+
         return wrapper
+
     return _tof_prefetch
 
 
@@ -37,7 +42,7 @@ def tof_filter(func):
             new_kwargs = {}
             for key, value in list(kwargs.items()):
                 # modify kwargs (warning: recursion ahead)
-                new_key, new_value, repl = expand_filter(tof_fields, key, value)
+                new_key, new_value, _ = expand_filter(tof_fields, key, value)
                 new_kwargs.update({new_key: new_value})
 
         return func(self, *new_args, **new_kwargs)

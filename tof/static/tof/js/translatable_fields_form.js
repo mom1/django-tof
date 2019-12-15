@@ -2,12 +2,12 @@
 * @Author: MaxST
 * @Date:   2019-11-09 13:52:25
 * @Last Modified by:   MaxST
-* @Last Modified time: 2019-12-01 14:44:20
+* @Last Modified time: 2019-12-15 17:13:32
 */
 (function ($) {
-  'use strict';
+  "use strict";
   window.generic_view_json = function (fields, text) {
-    var $drop = $('#id_name');
+    var $drop = $("#id_name");
     var $select = $drop;
     var value = $drop.val();
     if (! $select.parent().is(".related-widget-wrapper")) {
@@ -16,59 +16,61 @@
     } else {
       $select = $select.parent();
     }
-    var sel = $('<select/>');
+    var sel = $("<select/>");
     sel.attr({
-      'id': 'id_name',
-      'name': 'name',
-      'class': 'admin-autocomplete',
-      'tabindex': -1,
-      'data-allow-clear': false,
-      'data-placeholder': '',
-      'data-theme': 'admin-autocomplete'
+      "id": "id_name",
+      "name": "name",
+      "class": "admin-autocomplete",
+      "tabindex": -1,
+      "data-allow-clear": false,
+      "data-placeholder": "",
+      "data-theme": "admin-autocomplete"
     });
-    var data = [{id: '', text: ''}];
+    var data = [{id: "", text: ""}];
     sel.append('<option value="" ></option>');
     $.each(fields, function (index, field) {
-      var selected = '';
-      if (field == value) {
-        selected = 'selected';
+      var selected = "";
+      if (field === value) {
+        selected = "selected";
       }
-      sel.append('<option value="' + field + '" ' + selected + '>' + field + '</option>');
+      sel.append('<option value="' + field + '" ' + selected + ">" + field + "</option>");
       data.push({id: field, text: field});
     });
-    var common_data = data;
+    var commonData = data;
     $select.html(sel);
-    $('#id_name').change(function () {
+    $("#id_name").change(function () {
        var title = $(this).val();
-       $('#id_title').val(title[0].toUpperCase() + title.slice(1));
+       $("#id_title").val(title[0].toUpperCase() + title.slice(1));
      });
-    return $('#id_name').djangoAdminSelect2({
+    return $("#id_name").djangoAdminSelect2({
       ajax: {
-        data: function (request_data) {
-          common_data = data.filter(function(item) {
-            if (request_data.term) {return item.text.startsWith(request_data.term)}
+        data(requestData) {
+          commonData = data.filter(function(item) {
+            if (requestData.term) {
+              return item.text.startsWith(requestData.term);
+            }
             return true;
           });
         },
-        processResults: function (get_data, page) {
-          return {results: common_data};
+        processResults(getData, page) {
+          return {results: commonData};
         }
       }
     });
   };
   $(document).ready(function () {
-    $('#id_content_type').change();
-    $('#id_content_type').change(function () {
-      $('#id_name').removeAttr('readonly');
+    $("#id_content_type").change();
+    $("#id_content_type").change(function () {
+      $("#id_name").removeAttr("readonly");
       if (!$(this).val()) {
-        $('#id_name').attr('readonly', true);
+        $("#id_name").attr("readonly", true);
         return;
       }
       $.get({
-        url: '?id_ct=' + $(this).val(),
-        success: function (data, textStatus, jqXHR) {
+        url: "?id_ct=" + $(this).val(),
+        success(data, textStatus, jqXHR) {
           if (data.errors) {
-            return alert(data.errors)
+            return alert(data.errors);
           }
           generic_view_json(data.fields, data.text);
         },
