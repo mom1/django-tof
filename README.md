@@ -5,6 +5,7 @@
 ![GitHub last commit](https://img.shields.io/github/last-commit/mom1/django-tof.svg)
 [![GitHub license](https://img.shields.io/github/license/mom1/django-tof)](https://github.com/mom1/django-tof/blob/master/LICENSE)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/ef1b0b5bb51048a6a03f3cc87798f9f9)](https://www.codacy.com/manual/mom1/django-tof?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=mom1/django-tof&amp;utm_campaign=Badge_Grade)
+[![codecov](https://codecov.io/gh/mom1/django-tof/branch/master/graph/badge.svg)](https://codecov.io/gh/mom1/django-tof)
 
 [![PyPI](https://img.shields.io/pypi/v/django-tof.svg)](https://pypi.python.org/pypi/django-tof)
 [![PyPI](https://img.shields.io/pypi/pyversions/django-tof.svg)]()
