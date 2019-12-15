@@ -1,3 +1,14 @@
+![GitHub issues](https://img.shields.io/github/issues/mom1/django-tof.svg)
+![GitHub stars](https://img.shields.io/github/stars/mom1/django-tof.svg)
+![GitHub Release Date](https://img.shields.io/github/release-date/mom1/django-tof.svg)
+![GitHub commits since latest release](https://img.shields.io/github/commits-since/mom1/django-tof/latest.svg)
+![GitHub last commit](https://img.shields.io/github/last-commit/mom1/django-tof.svg)
+[![GitHub license](https://img.shields.io/github/license/mom1/django-tof)](https://github.com/mom1/django-tof/blob/master/LICENSE)
+
+[![PyPI](https://img.shields.io/pypi/v/django-tof.svg)](https://pypi.python.org/pypi/django-tof)
+[![PyPI](https://img.shields.io/pypi/pyversions/django-tof.svg)]()
+![PyPI - Downloads](https://img.shields.io/pypi/dm/django-tof.svg?label=pip%20installs&logo=python)
+
 # django-tof
 Django models translation on fly 🛸️
 
