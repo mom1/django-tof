@@ -2,7 +2,7 @@
 * @Author: MaxST
 * @Date:   2019-11-09 13:52:25
 * @Last Modified by:   MaxST
-* @Last Modified time: 2019-12-15 15:49:30
+* @Last Modified time: 2019-12-15 17:00:01
 */
 (function ($) {
   "use strict";
@@ -10,7 +10,6 @@
     var $drop = $("#id_object_id");
     var $select = $drop;
     var value = $drop.val();
-    var old_url = $drop.attr("data-ajax--url");
     if (! $select.parent().is(".related-widget-wrapper")) {
       $select = $('<div class="related-widget-wrapper"/>');
       $drop.replaceWith($select);

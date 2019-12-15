@@ -2,7 +2,7 @@
 * @Author: MaxST
 * @Date:   2019-11-26 13:42:43
 * @Last Modified by:   MaxST
-* @Last Modified time: 2019-12-15 15:48:41
+* @Last Modified time: 2019-12-15 16:59:10
 */
 (function ($) {
   "use strict";
@@ -20,11 +20,11 @@
       var arrId = newItab.attr("id").split("_");
       arrId[0] = chosenId;
       arrId[arrId.length - 1] = chosenId;
-      var additional_id = arrId.join("_");
-      var oldLabel = $('.ltab[for="' + additional_id + '"]');
+      var additionalId = arrId.join("_");
+      var oldLabel = $('.ltab[for="' + additionalId + '"]');
       if (oldLabel.length === 0) {
-        newItab.attr("id", additional_id);
-        newLtab.attr("for", additional_id);
+        newItab.attr("id", additionalId);
+        newLtab.attr("for", additionalId);
         newLtab.text(chosenId);
         newTab.children().attr({id: arrId.slice(1).join('_'), name: arrId.slice(2).join('_'), value: '', lang: chosenId}).text('').val('');
         var destination = ".tabbed-area._" + newItab.attr("name") + " .add-tab";
