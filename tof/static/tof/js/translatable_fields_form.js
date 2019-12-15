@@ -2,7 +2,7 @@
 * @Author: MaxST
 * @Date:   2019-11-09 13:52:25
 * @Last Modified by:   MaxST
-* @Last Modified time: 2019-12-15 16:57:52
+* @Last Modified time: 2019-12-15 17:13:32
 */
 (function ($) {
   "use strict";
@@ -68,7 +68,7 @@
       }
       $.get({
         url: "?id_ct=" + $(this).val(),
-        success: function (data, textStatus, jqXHR) {
+        success(data, textStatus, jqXHR) {
           if (data.errors) {
             return alert(data.errors);
           }

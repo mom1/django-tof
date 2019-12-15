@@ -2,7 +2,7 @@
 * @Author: MaxST
 * @Date:   2019-11-26 13:42:43
 * @Last Modified by:   MaxST
-* @Last Modified time: 2019-12-15 16:59:10
+* @Last Modified time: 2019-12-15 17:14:38
 */
 (function ($) {
   "use strict";
@@ -26,7 +26,7 @@
         newItab.attr("id", additionalId);
         newLtab.attr("for", additionalId);
         newLtab.text(chosenId);
-        newTab.children().attr({id: arrId.slice(1).join('_'), name: arrId.slice(2).join('_'), value: '', lang: chosenId}).text('').val('');
+        newTab.children().attr({id: arrId.slice(1).join("_"), name: arrId.slice(2).join("_"), value: "", lang: chosenId}).text("").val("");
         var destination = ".tabbed-area._" + newItab.attr("name") + " .add-tab";
         newItab.insertBefore(destination);
         newLtab.insertBefore(destination);

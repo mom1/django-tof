@@ -2,7 +2,7 @@
 * @Author: MaxST
 * @Date:   2019-11-09 13:52:25
 * @Last Modified by:   MaxST
-* @Last Modified time: 2019-12-15 17:00:01
+* @Last Modified time: 2019-12-15 17:15:01
 */
 (function ($) {
   "use strict";
@@ -52,7 +52,7 @@
         params["id_obj"] = $("#id_object_id").val();
       }
       $.get({
-        url: '',
+        url: "",
         data: params,
         success(data, textStatus, jqXHR) {
           if (data.errors) {
