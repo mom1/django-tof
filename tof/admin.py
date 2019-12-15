@@ -2,7 +2,7 @@
 # @Author: MaxST
 # @Date:   2019-10-28 12:30:45
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-12-15 12:54:45
+# @Last Modified time: 2019-12-15 14:21:06
 import logging
 
 from django import forms
