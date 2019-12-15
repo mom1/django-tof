@@ -63,7 +63,7 @@ At the same time, it is possible to leave some fields in the previous form by sp
   1. You can also use inline translation submission forms. To do this, specify admin class (always inherited from "TofAdmin") `inlines = (TranslationTabularInline, )` 
 or `inlines = (TranslationStackedInline, )`
 
-## Import Use
+## Programmatic use
 Like a standard using, but it is possible to get a specific translation.
 
 ~~~python
