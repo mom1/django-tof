@@ -8,6 +8,14 @@ Dieses Projekt wurde durch winePad GmbH iniziiert, gefördert und bis zur Veröf
 
 ----
 
+![GitHub issues](https://img.shields.io/github/issues/mom1/django-tof.svg)
+![GitHub stars](https://img.shields.io/github/stars/mom1/django-tof.svg)
+![GitHub Release Date](https://img.shields.io/github/release-date/mom1/django-tof.svg)
+![GitHub commits since latest release](https://img.shields.io/github/commits-since/mom1/django-tof/latest.svg)
+![GitHub last commit](https://img.shields.io/github/last-commit/mom1/django-tof.svg)
+[![GitHub license](https://img.shields.io/github/license/mom1/django-tof)](https://github.com/mom1/django-tof/blob/master/LICENSE)
+
+
 [![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/i0QJJJEMKSU/0.jpg)](https://www.youtube.com/watch?v=i0QJJJEMKSU)
 
 _[Russian readme](README_ru.md)_
