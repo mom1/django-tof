@@ -36,7 +36,7 @@ An Application for dynamic translation of existing Django models into any number
 
 ## Installation
 
-`pip install django-tof` after version 0.3.0
+`pip install django-tof`
 
 `python manage.py migrate tof`
 
@@ -60,7 +60,7 @@ In this case if current language is 'en', then the value saved in the model will
 Using the `class CustomModelAdmin(TofAdmin)` will cause the translated fields (added to the "Translatable fields") will be able to specify a specific language.
 At the same time, it is possible to leave some fields in the previous form by specify them in `TofAdmin` with attribute `only_current_lang = ('description', )`. <br>
 ![Widget for translatable fields](docs/images/field_with_langs.jpeg)
-  1. You can also use inline translation submission forms. To do this, specify admin class (always inherited from "TofAdmin") `inlines = (TranslationTabularInline, )` 
+  1. You can also use inline translation submission forms. To do this, specify admin class (always inherited from "TofAdmin") `inlines = (TranslationTabularInline, )`
 or `inlines = (TranslationStackedInline, )`
 
 ## Programmatic use

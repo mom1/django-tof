@@ -34,7 +34,7 @@ Django models translation on fly 🛸️
 
 ## Установка
 
-`pip install django-tof` после выхода версии 0.3.0
+`pip install django-tof`
 
 `python manage.py migrate tof`
 
