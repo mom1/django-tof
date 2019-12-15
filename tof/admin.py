@@ -2,7 +2,7 @@
 # @Author: MaxST
 # @Date:   2019-10-28 12:30:45
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-12-15 15:20:57
+# @Last Modified time: 2019-12-15 16:23:55
 import logging
 
 from django import forms
@@ -184,7 +184,7 @@ class TofAdmin(admin.ModelAdmin):
     form = TranslationFieldModelForm
     only_current_lang = ()
 
-    def get_readonly_fields(self, request, obj):
+    def get_readonly_fields(self, request, obj=None):
         response = list(super().get_readonly_fields(request, obj))
         field_tof = getattr(self.model._meta, '_field_tof', {}).get('by_name')
         if field_tof and any(issubclass(c, TranslationInline) for c in self.inlines):

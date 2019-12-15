@@ -2,7 +2,7 @@
 * @Author: MaxST
 * @Date:   2019-11-09 13:52:25
 * @Last Modified by:   MaxST
-* @Last Modified time: 2019-12-15 15:50:17
+* @Last Modified time: 2019-12-15 16:10:14
 */
 (function ($) {
   "use strict";
@@ -46,7 +46,7 @@
       ajax: {
         data(requestData) {
           commonData = data.filter(function(item) {
-            if (requestData.term) {return item.text.startsWith(requestData.term)};
+            if (requestData.term) return item.text.startsWith(requestData.term);
             return true;
           });
         },

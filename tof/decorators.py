@@ -2,7 +2,7 @@
 # @Author: MaxST
 # @Date:   2019-11-17 15:03:06
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-12-15 14:03:16
+# @Last Modified time: 2019-12-15 16:25:52
 from functools import wraps
 
 from django.db.models import Q
@@ -42,7 +42,7 @@ def tof_filter(func):
             new_kwargs = {}
             for key, value in list(kwargs.items()):
                 # modify kwargs (warning: recursion ahead)
-                new_key, new_value, repl = expand_filter(tof_fields, key, value)
+                new_key, new_value, _ = expand_filter(tof_fields, key, value)
                 new_kwargs.update({new_key: new_value})
 
         return func(self, *new_args, **new_kwargs)
