@@ -88,8 +88,8 @@ The processing order is this, if a translation into current/requested language i
 if not - we take the SIDE_ID key.
 For example:
 
-  - if current language "fr", then searching order will be next: "fr" -> "nl" -> DEFAULT_LANGUAGE -> then if there is an original value that was translatable before the declaration of this field.
-  - if current language "en", then searching order will be next "en" -> "de" -> "ru" -> DEFAULT_LANGUAGE -> then if there is an original value that was translatable before the declaration of this field.
+  - if current language "fr", then searching order will be next: "fr" -> "nl" -> DEFAULT_LANGUAGE -> then if there is an original value that was before the declaration of this field like translatable.
+  - if current language "en", then searching order will be next "en" -> "de" -> "ru" -> DEFAULT_LANGUAGE -> then if there is an original value that was before the declaration of this field like translatable.
 
 DEFAULT_FILTER_LANGUAGE: _default_ "current" - Indicates in which translations search/filter values. May be in the next forms `__all__`, `current`, `['en', 'de']`, `{'en', ('en', 'de', 'ru')}`
 
