@@ -20,7 +20,6 @@ jobs:
           python -m pip install poetry
           cd ./example_project/
           python -m poetry install
-          python -m poetry run pip install codecov
       - name: Test with django test
         run: |
           cd ./example_project/
@@ -32,4 +31,3 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
           file: ./example_project/coverage.xml
           flags: ${{ matrix.python-version }}
-          name: ${{ github.ref }}
