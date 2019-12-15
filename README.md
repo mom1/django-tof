@@ -84,7 +84,7 @@ DEFAULT_LANGUAGE: _default_ "en" - Default language is stub, used if not other t
 FALLBACK_LANGUAGES: _default_ `{SITE_ID: ('en', 'de', 'ru'), 'fr': ('nl', ),}` - Determinate the order of search of languages for translation if the translation is in desired
 no language. The key can be SITE_ID, None or language.
 
-The processing order ois this, if a translation into current/requested language is not found, then first we checked by the language key, if there is, looking translations for requested languages,
+The processing order is this, if a translation into current/requested language is not found, then first we checked by the language key, if there is, looking translations for requested languages,
 if not - we take the SIDE_ID key.
 For example:
 
