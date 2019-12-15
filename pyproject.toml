@@ -1,8 +1,7 @@
 [tool.poetry]
 name = 'django-tof'
 version = "0.3.0"
-description = '''Freely distributed library that allows you to translate fields of django models without having to restart the server,
-  without changing the model code, with the storage of translations in the database.'''
+description = 'Translate fields of django models without having to restart the server,  without changing the model code.'
 authors = ['MaxST <mstolpasov@gmail.com>']
 license = 'MIT'
 repository = 'https://github.com/mom1/django-tof'
@@ -10,7 +9,7 @@ homepage = 'https://github.com/mom1/django-tof/wiki/django-tof'
 keywords = ['translations', 'translate', 'django', 'model']
 readme = 'README.md'
 classifiers = [
-    'Development Status :: 3 - Alpha',
+    'Development Status :: 5 - Production/Stable',
     'Environment :: Web Environment',
     'Framework :: Django',
     'Intended Audience :: Developers',
