@@ -2,7 +2,7 @@
 # @Author: MaxST
 # @Date:   2019-11-09 13:47:17
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-12-15 00:32:25
+# @Last Modified time: 2019-12-15 14:13:23
 from functools import wraps
 from django.contrib.contenttypes.models import ContentType
 from django import forms
@@ -23,6 +23,7 @@ class TranslationsInLineForm(forms.ModelForm):
         field = self.fields.get('field')
         if field:
             field.widget.widget.get_url = self.filter_ct(field.widget.widget.get_url)
+            field.widget.can_add_related = field.widget.can_change_related = False
 
     def filter_ct(self, func):
         @wraps(func)
