@@ -30,4 +30,3 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           file: ./example_project/coverage.xml
-          flags: ${{ matrix.python-version }}
