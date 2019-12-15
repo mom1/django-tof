@@ -1,6 +1,6 @@
 [tool.poetry]
 name = 'django-tof'
-version = "0.3.0"
+version = "0.3.1"
 description = 'Translate fields of django models without having to restart the server,  without changing the model code.'
 authors = ['MaxST <mstolpasov@gmail.com>']
 license = 'MIT'
