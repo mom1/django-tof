@@ -2,7 +2,7 @@
 # @Author: MaxST
 # @Date:   2019-11-09 13:47:17
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-12-10 22:12:59
+# @Last Modified time: 2019-12-15 00:32:25
 from functools import wraps
 from django.contrib.contenttypes.models import ContentType
 from django import forms
@@ -17,17 +17,19 @@ class TranslationsForm(forms.ModelForm):
 
 
 class TranslationsInLineForm(forms.ModelForm):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, parent_object=None, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['field'].widget.widget.get_url = self.filter_ct(self.fields['field'].widget.widget.get_url)
+        self.parent_object = parent_object
+        field = self.fields.get('field')
+        if field:
+            field.widget.widget.get_url = self.filter_ct(field.widget.widget.get_url)
 
     def filter_ct(self, func):
         @wraps(func)
         def wrapper(*args, **kwargs):
             response = func(*args, **kwargs)
-            if self.instance and self.instance.content_object:
-                ct = ContentType.objects.get_for_model(self.instance.content_object._meta.model)
-                return f'{response}?ct={ct.pk}'
+            if self.parent_object:
+                return f'{response}?ct={ContentType.objects.get_for_model(self.parent_object).pk}'
             return response
 
         return wrapper

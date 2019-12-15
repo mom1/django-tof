@@ -2,7 +2,7 @@
 # @Author: MaxST
 # @Date:   2019-10-28 12:30:45
 # @Last Modified by:   MaxST
-# @Last Modified time: 2019-12-08 12:27:42
+# @Last Modified time: 2019-12-15 12:54:45
 import logging
 
 from django import forms
@@ -11,6 +11,7 @@ from django.contrib.admin.options import IS_POPUP_VAR
 from django.contrib.contenttypes.admin import (
     GenericInlineModelAdmin, GenericStackedInline, GenericTabularInline,
 )
+from django.contrib.contenttypes.forms import BaseGenericInlineFormSet
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import CharField, Q, TextField
 from django.http import JsonResponse
@@ -140,11 +141,19 @@ class TranslationAdmin(admin.ModelAdmin):
         return super()._changeform_view(request, object_id, form_url, extra_context)
 
 
+class TranslationFormSet(BaseGenericInlineFormSet):
+    def get_form_kwargs(self, index):
+        kwargs = super().get_form_kwargs(index)
+        kwargs['parent_object'] = self.instance
+        return kwargs
+
+
 class TranslationInline(GenericInlineModelAdmin):
     model = Translation
     extra = 0
     autocomplete_fields = ('field', 'lang')
     fields = ('field', 'lang', 'value')
+    formset = TranslationFormSet
     form = TranslationsInLineForm
 
     @property
