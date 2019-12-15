@@ -17,14 +17,18 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install poetry==1.0.0b5
+          python -m pip install poetry
           cd ./example_project/
           python -m poetry install
+          python -m poetry run pip install codecov
       - name: Test with django test
         run: |
           cd ./example_project/
           python -m poetry run coverage run --source='tof' manage.py test tof
       - name: Tests report
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
         run: |
           cd ./example_project/
           python -m poetry run coverage report
+          python -m poetry run codecov --token=$CODECOV_TOKEN
