@@ -22,6 +22,7 @@ This project was initiated, promoted and accompanied by winePad GmbH. All develo
 [![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/i0QJJJEMKSU/0.jpg)](https://www.youtube.com/watch?v=i0QJJJEMKSU)
 
 _[Russian readme](README_ru.md)_
+
 ----
 The background and objectives of this projects are described [here](https://github.com/mom1/django-tof/wiki/django-tof)
 
