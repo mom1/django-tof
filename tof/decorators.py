@@ -77,7 +77,7 @@ def expand_filter(tof_fields, key, value):
             pass
         elif DEFAULT_FILTER_LANGUAGE == 'current':
             query &= Q(lang=get_language())
-        elif isinstance(DEFAULT_FILTER_LANGUAGE, str):
+        elif isinstance(DEFAULT_FILTER_LANGUAGE, basestring):
             query &= Q(lang=DEFAULT_FILTER_LANGUAGE)
         elif isinstance(DEFAULT_FILTER_LANGUAGE, (list, tuple)):
             query &= Q(lang__in=DEFAULT_FILTER_LANGUAGE)
